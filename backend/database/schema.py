@@ -7,6 +7,7 @@ def create_tables():
             CREATE TABLE IF NOT EXISTS Student (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
+                password BLOB NOT NULL,
                 fax_n TEXT,
                 pager_n TEXT,
                 avatar_url TEXT
