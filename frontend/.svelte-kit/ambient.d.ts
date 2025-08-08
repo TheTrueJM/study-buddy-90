@@ -52,6 +52,7 @@ declare module '$env/static/private' {
 	export const LANG: string;
 	export const npm_package_version: string;
 	export const SECURITYSESSIONID: string;
+	export const VIRTUAL_ENV: string;
 	export const STARSHIP_SHELL: string;
 	export const NIX_SSL_CERT_FILE: string;
 	export const TMPDIR: string;
@@ -66,6 +67,7 @@ declare module '$env/static/private' {
 	export const SHLVL: string;
 	export const __HM_ZSH_SESS_VARS_SOURCED: string;
 	export const PAGER: string;
+	export const VIRTUAL_ENV_PROMPT: string;
 	export const XPC_SERVICE_NAME: string;
 	export const npm_config_user_agent: string;
 	export const TERMINFO_DIRS: string;
@@ -137,6 +139,7 @@ declare module '$env/dynamic/private' {
 		LANG: string;
 		npm_package_version: string;
 		SECURITYSESSIONID: string;
+		VIRTUAL_ENV: string;
 		STARSHIP_SHELL: string;
 		NIX_SSL_CERT_FILE: string;
 		TMPDIR: string;
@@ -151,6 +154,7 @@ declare module '$env/dynamic/private' {
 		SHLVL: string;
 		__HM_ZSH_SESS_VARS_SOURCED: string;
 		PAGER: string;
+		VIRTUAL_ENV_PROMPT: string;
 		XPC_SERVICE_NAME: string;
 		npm_config_user_agent: string;
 		TERMINFO_DIRS: string;
