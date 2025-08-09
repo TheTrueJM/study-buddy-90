@@ -146,6 +146,155 @@ body {
   background-attachment: fixed;
 }
 
+/* ====== CRT / Retro overlay (scoped by .crt) ======
+   Adds subtle scanlines, vignette, and a soft glow/flicker to the entire app
+   to evoke a CRT monitor look. Fully non-interactive overlay. */
+html, body, #app { height: 100%; }
+
+/* Slight global color pop for that phosphor look */
+body.crt #app {
+  filter: contrast(1.28) saturate(1.35) brightness(1.06) hue-rotate(-2deg)
+          drop-shadow(0 0 0.6px rgba(0,255,255,0.18))
+          drop-shadow(0 0 0.8px rgba(0,128,255,0.12));
+  animation: crt-jitter 120ms infinite steps(2);
+}
+
+/* Scanlines overlay */
+body.crt::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100000;
+  background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.45) 0px,
+      rgba(0, 0, 0, 0.45) 2px,
+      rgba(255, 255, 255, 0.10) 2px,
+      rgba(255, 255, 255, 0.10) 3px,
+      rgba(0, 0, 0, 0) 3px,
+      rgba(0, 0, 0, 0) 4px
+    );
+  mix-blend-mode: multiply;
+  opacity: 0.75;
+  animation: crt-flicker 7s steps(80) infinite, scan-shift 12s linear infinite;
+}
+
+/* Vignette + subtle curvature shading */
+body.crt::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100001;
+  background:
+    radial-gradient(ellipse at center, rgba(0,0,0,0) 58%, rgba(0,0,0,0.22) 96%),
+    radial-gradient(ellipse at 50% -20%, rgba(255,255,255,0.18), rgba(255,255,255,0) 60%),
+    radial-gradient(ellipse at 50% 120%, rgba(0,0,0,0.16), rgba(0,0,0,0) 60%);
+  filter: blur(0.1px);
+}
+
+/* Slight global bloom for text to mimic phosphor */
+body.crt * {
+  text-shadow: 0 0 1px rgba(255,255,255,0.05);
+}
+
+/* RGB phosphor mask overlay element */
+.crt-mask { display: none; }
+body.crt .crt-mask {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 100002;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(255, 0, 0, 0.12) 0px,
+    rgba(255, 0, 0, 0.12) 1px,
+    rgba(0, 255, 0, 0.12) 1px,
+    rgba(0, 255, 0, 0.12) 2px,
+    rgba(0, 0, 255, 0.12) 2px,
+    rgba(0, 0, 255, 0.12) 3px
+  );
+  mix-blend-mode: screen;
+  opacity: 0.28;
+}
+
+@keyframes crt-flicker {
+  0%, 100% { opacity: 0.33; }
+  5% { opacity: 0.36; }
+  10% { opacity: 0.30; }
+  15% { opacity: 0.35; }
+  20% { opacity: 0.32; }
+  25% { opacity: 0.34; }
+  30% { opacity: 0.31; }
+  35% { opacity: 0.36; }
+  40% { opacity: 0.32; }
+  45% { opacity: 0.34; }
+  50% { opacity: 0.33; }
+  55% { opacity: 0.35; }
+  60% { opacity: 0.31; }
+  65% { opacity: 0.36; }
+  70% { opacity: 0.32; }
+  75% { opacity: 0.34; }
+  80% { opacity: 0.30; }
+  85% { opacity: 0.36; }
+  90% { opacity: 0.33; }
+  95% { opacity: 0.35; }
+}
+
+@keyframes scan-shift {
+  0% { background-position-y: 0; }
+  100% { background-position-y: 2px; }
+}
+
+@keyframes crt-jitter {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(0.3px); }
+  100% { transform: translateY(0); }
+}
+
+/* Glowing neon headings for early 2000s vibes */
+h1, h2, .title {
+  text-shadow:
+    0 0 2px #fff,
+    0 0 6px #0ff,
+    0 0 10px #0ff,
+    0 0 14px #09f;
+}
+
+/* Hyperlink sparkle underline effect */
+a {
+  position: relative;
+  text-decoration: none;
+}
+a::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -2px; right: 0; height: 2px;
+  background: linear-gradient(90deg, #ff00cc, #00ffff, #ffff00, #ff00cc);
+  background-size: 300% 100%;
+  animation: rainbow-underline 6s linear infinite;
+}
+
+@keyframes rainbow-underline {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* Chunky pointer reminiscent of old sites */
+* { cursor: crosshair; }
+
+/* ====== Gray Theme (toggleable) ======
+   Apply on html.gray-theme to override primary tokens for a gray look. */
+html.gray-theme {
+  --primary: #e5e5e5;
+  --secondary: #2b2b2b;
+  --tertiary: #8e8e8e;
+  --disabled: #bdbdbd;
+}
+
+
 a {
   color: var(--secondary);
   text-decoration: underline;
