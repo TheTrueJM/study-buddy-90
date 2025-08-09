@@ -15,16 +15,13 @@ from database.authentication import verify_credentials
 
 app = FastAPI(title="Study Buddy API")
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5174",  # Vite dev server default port
-        
-        "http://localhost:3000",  # Common React dev server port
-        "http://127.0.0.1:5174",  # Alternative localhost
-        
-        "http://127.0.0.1:3000",  # Alternative localhost
+        "http://localhost:5174",
+        "http://localhost:3000",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:3000",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -326,11 +323,9 @@ class AuthParams(BaseModel):
 
 @app.post("/auth", tags=["auth"])
 def auth(body: AuthParams):
-    """Authenticate user with username and password"""
     try:
         is_valid = verify_credentials(body.username, body.password)
         if is_valid:
-            # Get student details for successful login
             from database.connection import execute_query
             rows = execute_query(
                 "SELECT id, name, fax_n, pager_n, avatar_url FROM Student WHERE name = ? LIMIT 1",

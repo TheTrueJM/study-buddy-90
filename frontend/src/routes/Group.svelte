@@ -8,7 +8,6 @@
   let loading = true;
   let error = null;
   
-  // Mock user membership check - in real app would check from backend
   const currentUserId = 1;
   const myGroupIds = new Set(["G-214", "G-101"]);
   
@@ -141,7 +140,6 @@
         </div>
 
       {#if joined}
-        <!-- Chat window only visible when joined -->
         <div class="standard-dialog" style="margin-top:12px;">
           <h3 class="heading" style="margin:0 0 8px;">Group Chat</h3>
           <div class="outer-border inner-border" style="height:280px; overflow:auto; padding:8px; background:var(--primary);">
@@ -157,7 +155,6 @@
           </div>
         </div>
 
-        <!-- Pending join requests section for group leaders/members -->
         {#if incomingRequests.length > 0}
           <div class="standard-dialog" style="margin-top:12px;">
             <h3 class="heading" style="margin:0 0 8px;">Pending Join Requests</h3>
