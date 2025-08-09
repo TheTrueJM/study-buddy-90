@@ -53,8 +53,8 @@ def get_student_by_id(student_id: int):
 
 @app.post("/students", tags=["students"])
 def create_student(body: StudentCreate):
-    if len(search_students(body.name)) <= 1:
-        raise HTTPException(404, "Student not found")
+    #if len(search_students(body.name)) <= 1:
+     #   raise HTTPException(404, "Student not found")
     new_id = Student.create(
         name=body.name,
         password=body.password,  
