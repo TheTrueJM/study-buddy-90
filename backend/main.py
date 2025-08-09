@@ -6,6 +6,7 @@ from database.schema import init_database
 from database.student import Student
 from database.units import Units
 from database.groups import Groups
+from database.assessments import Assessments
 from database.unit_enrolment import UnitEnrolment
 from database.group_requests import GroupRequests
 from database.group_member import GroupMember
@@ -113,6 +114,63 @@ def delete_unit(code: str):
 @app.get("/units:search", tags=["units"])
 def search_units(q: str = Query(..., min_length=1)):
     return Units.search_by_name(q)
+
+class Create_Assessment(BaseModel):
+    unit_code: str
+    num: int
+    size: int
+    due_week: int
+    grade: float
+    group_formation_week: int
+
+class Update_Assessment(BaseModel):
+    unit_code: str
+    num: int
+    size: int
+    due_week: int
+    grade: float
+    group_formation_week: int
+
+class Delete_Assessment(BaseModel):
+    unit_code: str
+    num: int
+    size: int
+    due_week: int
+    grade: float
+    group_formation_week: int
+
+@app.get("/assessments", tags=["assessments"])
+def list_assessments():
+    return Assessments.get_all()
+
+@app.get("/assessments/{code}", tags=["assessments"])
+def get_assessment(code: str):
+    row = Assessments.get_by_code(code)
+    if not row:
+        raise HTTPException(404, "Assessment not found")
+    return row
+
+@app.post("/assessments", tags=["assessments"])
+def create_unit(body: Create_Assessment):
+    if not Assessments.create(body.code, body.name, body.description or ""):
+        raise HTTPException(400, "Assessment already exists")
+    return {"ok": True}
+
+@app.put("/assessments/{code}", tags=["assessments"])
+def update_unit(code: str, body: Update_Assessment):
+    if not Assessments.update(code, body.name, body.description or ""):
+        raise HTTPException(404, "Assessment not found")
+    return {"ok": True}
+
+@app.delete("/assessments/{code}", tags=["assessments"])
+def delete_unit(code: str):
+    if not Assessments.delete(code):
+        raise HTTPException(404, "Assessment not found")
+    return {"ok": True}
+
+@app.get("/assessments:search", tags=["assessments"])
+def search_units(q: str = Query(..., min_length=1)):
+    return Assessments.search_by_name(q)
 
 class GroupCreate(BaseModel):
     unit_code: str
