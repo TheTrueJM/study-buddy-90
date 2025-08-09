@@ -1,22 +1,21 @@
 <script>
-  import Router from 'svelte-spa-router';
+  import Router from "svelte-spa-router";
 
-  import Navbar from './components/navbar.svelte';
+  import Navbar from "./components/navbar.svelte";
 
-  import Authentication from './routes/Authentication.svelte';
-  import Units from './routes/Units.svelte';
+  import Authentication from "./routes/Authentication.svelte";
+  import Units from "./routes/Units.svelte";
 
   const routes = {
-    '/': Authentication,
-    '/units': Units,
+    "/": Authentication,
+    "/units": Units,
   };
 
-
-  import { userId } from './js/User.js';
+  import { userId } from "./js/User.js";
 </script>
 
 <main>
-  <Navbar> </Navbar>
+  <Navbar></Navbar>
 
   <Router {routes} />
 </main>
