@@ -40,7 +40,7 @@ def get_student(student_id: int):
 def create_student(body: StudentCreate):
     new_id = Student.create(
         name=body.name,
-        password=(body.password.encode() if isinstance(body.password, str) else body.password),
+        password=body.password,  
         fax_n=body.fax_n or "",
         pager_n=body.pager_n or "",
         avatar_url=body.avatar_url or "",
@@ -52,14 +52,14 @@ def update_student(student_id: int, body: StudentUpdate):
     ok = Student.update(
         student_id,
         body.name,
-        (body.password.encode() if isinstance(body.password, str) else body.password),
+        body.password,  
         body.fax_n or "",
         body.pager_n or "",
         body.avatar_url or "",
     )
     if not ok:
         raise HTTPException(404, "Student not found")
-    return {"ok": True}
+    return {"ok": True}@app.delete("/students/{student_id}", tags=["students"])
 
 @app.delete("/students/{student_id}", tags=["students"])
 def delete_student(student_id: int):
@@ -216,7 +216,7 @@ def create_group_request(body: GroupRequestCreate):
 @app.delete("/group-requests/{group_id}/{student_id}", tags=["group_requests"])
 def delete_group_request(group_id: int, student_id: int):
     if not GroupRequests.delete_request(group_id, student_id):
-        raise HTTPException(404, "Request not found")
+        raise HTTPException(404, "Request not found") 
     return {"ok": True}
 
 #database test
