@@ -1,6 +1,7 @@
 <script>
   import { push } from "svelte-spa-router";
   import { logoutUser } from "../js/User.js";
+  import Card from "../components/Card.svelte";
 
   logoutUser();
 
@@ -24,35 +25,20 @@
   style="padding:12px; display:flex; flex-direction:column; gap:12px; align-items:center;"
 >
   <!-- Hero -->
-  <div class="window" style="width:960px;">
-    <div class="title-bar">
-      <button class="close"></button>
-      <h1 class="title">Study Buddy</h1>
-      <button class="resize"></button>
-    </div>
-    <div class="separator"></div>
-    <div class="window-pane">
-      <p>
+  <Card title="Study Buddy">
+    <p>
         <strong>Find teammates for your uni assessments</strong> — retro Mac vibe,
         simple and fast.
-      </p>
-      <div class="field-row" style="justify-content:flex-end;">
+    </p>
+    <div class="field-row" style="justify-content:flex-end;">
         <button>About</button>
         <button class="default">Get Started</button>
-      </div>
     </div>
-  </div>
+  </Card>
 
   <!-- Quick Post -->
-  <div class="window" style="width:960px;">
-    <div class="title-bar">
-      <button class="close"></button>
-      <h1 class="title">Find a Team</h1>
-      <button class="resize"></button>
-    </div>
-    <div class="separator"></div>
-    <div class="window-pane">
-      <div class="field-row">
+  <Card title="Find a Team">
+    <div class="field-row">
         <label for="unit">Unit</label>
         <select id="unit" bind:value={search.unit}>
           {#each units as u}<option value={u}>{u}</option>{/each}
@@ -79,18 +65,10 @@
         <button on:click={() => (search.note = "")}>Cancel</button>
         <button class="default" on:click={post}>Post</button>
       </div>
-    </div>
-  </div>
+  </Card>
 
   <!-- Groups -->
-  <div class="window" style="width:960px;">
-    <div class="title-bar">
-      <button class="close"></button>
-      <h1 class="title">Active Groups</h1>
-      <button class="resize"></button>
-    </div>
-    <div class="separator"></div>
-    <div class="window-pane">
+  <card>
       <ul style="padding-left:1rem;">
         {#each groups as g}
           <li class="field-row" style="justify-content:space-between;">
@@ -107,8 +85,7 @@
       <div class="field-row" style="justify-content:flex-end;">
         <button on:click={refresh}>Refresh</button>
       </div>
-    </div>
-  </div>
+    </card>
 </main>
 
 <style>
