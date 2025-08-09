@@ -1,4 +1,3 @@
-<!-- Mock-only UI. If connected to backend, load group details by ID and POST a join request; show pending state. -->
 <script>
   import { push } from "svelte-spa-router";
   let group = {
