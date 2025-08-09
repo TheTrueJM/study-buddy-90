@@ -3,7 +3,7 @@
  * Copyright (c) 2022 Sakun Acharige <sakun.co>
  */
 
- :root {
+:root {
   --box-shadow: 2px 2px;
 
   /* Spacing */
@@ -20,9 +20,8 @@
   --radio-dot-width: 6px;
   --radio-dot-top: calc(var(--radio-width) / 2 - var(--radio-dot-width) / 2);
   --radio-dot-left: calc(
-    -1 * (var(--radio-total-width-precalc)) + var(--radio-width) / 2 - var(
-        --radio-dot-width
-      ) / 2
+    -1 * (var(--radio-total-width-precalc)) + var(--radio-width) / 2 -
+      var(--radio-dot-width) / 2
   );
 
   --checkbox-total-width-precalc: var(--checkbox-width) +
@@ -35,10 +34,10 @@
 
   /* ---- ⚫️ Colors ⚪️ ---- */
   /* Base Tokens */
-  --sys-color-white: #FFFFFF;
+  --sys-color-white: #ffffff;
   --sys-color-black: #000000;
-  --sys-color-grey: #A5A5A5;
-  --sys-color-darkgrey: #B6B7B8;
+  --sys-color-grey: #a5a5a5;
+  --sys-color-darkgrey: #b6b7b8;
 
   /* Theme Tokens */
   --primary: var(--sys-color-white);
@@ -77,10 +76,28 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: linear-gradient(45deg, var(--secondary) 25%, transparent 25%, transparent 75%, var(--secondary) 75%, var(--secondary)), linear-gradient(45deg, var(--secondary) 25%, transparent 25%, transparent 75%, var(--secondary) 75%, var(--secondary));
+  background:
+    linear-gradient(
+      45deg,
+      var(--secondary) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--secondary) 75%,
+      var(--secondary)
+    ),
+    linear-gradient(
+      45deg,
+      var(--secondary) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--secondary) 75%,
+      var(--secondary)
+    );
   background-color: var(--primary);
   background-size: 4px 4px;
-  background-position: 0 0, 2px 2px;
+  background-position:
+    0 0,
+    2px 2px;
   width: 10px;
   border-left: 3px solid var(--secondary);
 }
@@ -141,7 +158,10 @@
 }
 
 body {
-  background: linear-gradient(90deg, var(--primary) 21px, transparent 1%) center, linear-gradient(var(--primary) 21px, transparent 1%) center, var(--secondary);
+  background:
+    linear-gradient(90deg, var(--primary) 21px, transparent 1%) center,
+    linear-gradient(var(--primary) 21px, transparent 1%) center,
+    var(--secondary);
   background-size: 22px 22px;
   background-attachment: fixed;
 }
@@ -149,13 +169,90 @@ body {
 /* ====== CRT / Retro overlay (scoped by .crt) ======
    Adds subtle scanlines, vignette, and a soft glow/flicker to the entire app
    to evoke a CRT monitor look. Fully non-interactive overlay. */
-html, body, #app { height: 100%; }
+
+/* A. FONT */
+:root {
+  --retro-font: "ChicagoFLF", "Monaco", monospace;
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea,
+label,
+.title,
+h1,
+h2,
+h3,
+p,
+li,
+strong {
+  font-family: var(--retro-font) !important;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+/* B. Button size */
+.btn-lg {
+  font-size: 16px;
+  padding: 4px 12px;
+}
+.btn-sm {
+  font-size: 12px;
+  padding: 2px 8px;
+}
+.btn-xs {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+
+/* C. Form control */
+.field-lg input,
+.field-lg select,
+.field-lg textarea {
+  font-size: 16px;
+  height: 28px;
+  padding: 6px 8px;
+}
+
+/* D. Size util */
+.ui-zoom-125 {
+  transform: scale(1.25);
+  transform-origin: center;
+  display: inline-block;
+}
+.ui-zoom-150 {
+  transform: scale(1.5);
+  transform-origin: center;
+  display: inline-block;
+}
+.ui-zoom-200 {
+  transform: scale(2);
+  transform-origin: center;
+  display: inline-block;
+}
+/* ======================================================================== */
+
+/* ── Tall input ≈ visible 100px (scale=2) ───────────────── */
+.field-100 input,
+.field-100 select,
+.field-100 textarea {
+  font-size: 16px;
+  height: 40px;
+  padding: 4px 8px;
+}
 
 /* Slight global color pop for that phosphor look */
 body.crt #app {
   filter: contrast(1.28) saturate(1.35) brightness(1.06) hue-rotate(-2deg)
-          drop-shadow(0 0 0.6px rgba(0,255,255,0.18))
-          drop-shadow(0 0 0.8px rgba(0,128,255,0.12));
+    drop-shadow(0 0 0.6px rgba(0, 255, 255, 0.18))
+    drop-shadow(0 0 0.8px rgba(0, 128, 255, 0.12));
   animation: crt-jitter 120ms infinite steps(2);
 }
 
@@ -167,17 +264,19 @@ body.crt::before {
   pointer-events: none;
   z-index: 100000;
   background: repeating-linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.45) 0px,
-      rgba(0, 0, 0, 0.45) 2px,
-      rgba(255, 255, 255, 0.10) 2px,
-      rgba(255, 255, 255, 0.10) 3px,
-      rgba(0, 0, 0, 0) 3px,
-      rgba(0, 0, 0, 0) 4px
-    );
+    to bottom,
+    rgba(0, 0, 0, 0.45) 0px,
+    rgba(0, 0, 0, 0.45) 2px,
+    rgba(255, 255, 255, 0.1) 2px,
+    rgba(255, 255, 255, 0.1) 3px,
+    rgba(0, 0, 0, 0) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
   mix-blend-mode: multiply;
   opacity: 0.75;
-  animation: crt-flicker 7s steps(80) infinite, scan-shift 12s linear infinite;
+  animation:
+    crt-flicker 7s steps(80) infinite,
+    scan-shift 12s linear infinite;
 }
 
 /* Vignette + subtle curvature shading */
@@ -188,19 +287,33 @@ body.crt::after {
   pointer-events: none;
   z-index: 100001;
   background:
-    radial-gradient(ellipse at center, rgba(0,0,0,0) 58%, rgba(0,0,0,0.22) 96%),
-    radial-gradient(ellipse at 50% -20%, rgba(255,255,255,0.18), rgba(255,255,255,0) 60%),
-    radial-gradient(ellipse at 50% 120%, rgba(0,0,0,0.16), rgba(0,0,0,0) 60%);
+    radial-gradient(
+      ellipse at center,
+      rgba(0, 0, 0, 0) 58%,
+      rgba(0, 0, 0, 0.22) 96%
+    ),
+    radial-gradient(
+      ellipse at 50% -20%,
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0) 60%
+    ),
+    radial-gradient(
+      ellipse at 50% 120%,
+      rgba(0, 0, 0, 0.16),
+      rgba(0, 0, 0, 0) 60%
+    );
   filter: blur(0.1px);
 }
 
 /* Slight global bloom for text to mimic phosphor */
 body.crt * {
-  text-shadow: 0 0 1px rgba(255,255,255,0.05);
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 /* RGB phosphor mask overlay element */
-.crt-mask { display: none; }
+.crt-mask {
+  display: none;
+}
 body.crt .crt-mask {
   display: block;
   position: fixed;
@@ -221,41 +334,94 @@ body.crt .crt-mask {
 }
 
 @keyframes crt-flicker {
-  0%, 100% { opacity: 0.33; }
-  5% { opacity: 0.36; }
-  10% { opacity: 0.30; }
-  15% { opacity: 0.35; }
-  20% { opacity: 0.32; }
-  25% { opacity: 0.34; }
-  30% { opacity: 0.31; }
-  35% { opacity: 0.36; }
-  40% { opacity: 0.32; }
-  45% { opacity: 0.34; }
-  50% { opacity: 0.33; }
-  55% { opacity: 0.35; }
-  60% { opacity: 0.31; }
-  65% { opacity: 0.36; }
-  70% { opacity: 0.32; }
-  75% { opacity: 0.34; }
-  80% { opacity: 0.30; }
-  85% { opacity: 0.36; }
-  90% { opacity: 0.33; }
-  95% { opacity: 0.35; }
+  0%,
+  100% {
+    opacity: 0.33;
+  }
+  5% {
+    opacity: 0.36;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  15% {
+    opacity: 0.35;
+  }
+  20% {
+    opacity: 0.32;
+  }
+  25% {
+    opacity: 0.34;
+  }
+  30% {
+    opacity: 0.31;
+  }
+  35% {
+    opacity: 0.36;
+  }
+  40% {
+    opacity: 0.32;
+  }
+  45% {
+    opacity: 0.34;
+  }
+  50% {
+    opacity: 0.33;
+  }
+  55% {
+    opacity: 0.35;
+  }
+  60% {
+    opacity: 0.31;
+  }
+  65% {
+    opacity: 0.36;
+  }
+  70% {
+    opacity: 0.32;
+  }
+  75% {
+    opacity: 0.34;
+  }
+  80% {
+    opacity: 0.3;
+  }
+  85% {
+    opacity: 0.36;
+  }
+  90% {
+    opacity: 0.33;
+  }
+  95% {
+    opacity: 0.35;
+  }
 }
 
 @keyframes scan-shift {
-  0% { background-position-y: 0; }
-  100% { background-position-y: 2px; }
+  0% {
+    background-position-y: 0;
+  }
+  100% {
+    background-position-y: 2px;
+  }
 }
 
 @keyframes crt-jitter {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(0.3px); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(0.3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 /* Glowing neon headings for early 2000s vibes */
-h1, h2, .title {
+h1,
+h2,
+.title {
   text-shadow:
     0 0 2px #fff,
     0 0 6px #0ff,
@@ -271,19 +437,28 @@ a {
 a::after {
   content: "";
   position: absolute;
-  left: 0; bottom: -2px; right: 0; height: 2px;
+  left: 0;
+  bottom: -2px;
+  right: 0;
+  height: 2px;
   background: linear-gradient(90deg, #ff00cc, #00ffff, #ffff00, #ff00cc);
   background-size: 300% 100%;
   animation: rainbow-underline 6s linear infinite;
 }
 
 @keyframes rainbow-underline {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 300% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
 }
 
 /* Chunky pointer reminiscent of old sites */
-* { cursor: crosshair; }
+* {
+  cursor: crosshair;
+}
 
 /* ====== Gray Theme (toggleable) ======
    Apply on html.gray-theme to override primary tokens for a gray look. */
@@ -293,7 +468,6 @@ html.gray-theme {
   --tertiary: #8e8e8e;
   --disabled: #bdbdbd;
 }
-
 
 a {
   color: var(--secondary);
@@ -336,13 +510,15 @@ h2 {
   background-color: var(--primary);
 }
 
-.modal-dialog, .alert-box {
+.modal-dialog,
+.alert-box {
   width: auto;
   padding: 13px;
   background: var(--primary);
 }
 
-.modal-contents, .alert-contents {
+.modal-contents,
+.alert-contents {
   padding: 10px;
 }
 
@@ -429,7 +605,8 @@ h2 {
   /* IE6, IE7 */
   clip: rect(1px, 1px, 1px, 1px);
 }
-.title-bar button.close::before, .title-bar button.close::after {
+.title-bar button.close::before,
+.title-bar button.close::after {
   content: "";
   position: absolute;
   top: 0;
@@ -439,22 +616,44 @@ h2 {
   opacity: 0;
 }
 .title-bar button.close::before {
-  background: linear-gradient(var(--secondary) 0%, var(--secondary) 100%) left center, linear-gradient(var(--secondary) 0%, var(--secondary) 100%) right center, linear-gradient(var(--secondary) 0%, var(--secondary) 100%) center top, linear-gradient(var(--secondary) 0%, var(--secondary) 100%) center bottom;
-  background-size: 30% 4px, 30% 4px, 4px 30%, 4px 30%;
+  background:
+    linear-gradient(var(--secondary) 0%, var(--secondary) 100%) left center,
+    linear-gradient(var(--secondary) 0%, var(--secondary) 100%) right center,
+    linear-gradient(var(--secondary) 0%, var(--secondary) 100%) center top,
+    linear-gradient(var(--secondary) 0%, var(--secondary) 100%) center bottom;
+  background-size:
+    30% 4px,
+    30% 4px,
+    4px 30%,
+    4px 30%;
   background-repeat: no-repeat;
 }
 .title-bar button.close::after {
-  background: linear-gradient(var(--secondary) 0%, var(--secondary) 100%) left center, linear-gradient(var(--secondary) 0%, var(--secondary) 100%) right center, linear-gradient(var(--secondary) 0%, var(--secondary) 100%) center top, linear-gradient(var(--secondary) 0%, var(--secondary) 100%) center bottom;
-  background-size: 22.5% 3.6363636364px, 22.5% 3.6363636364px, 3.6363636364px 22.5%, 3.6363636364px 22.5%;
+  background:
+    linear-gradient(var(--secondary) 0%, var(--secondary) 100%) left center,
+    linear-gradient(var(--secondary) 0%, var(--secondary) 100%) right center,
+    linear-gradient(var(--secondary) 0%, var(--secondary) 100%) center top,
+    linear-gradient(var(--secondary) 0%, var(--secondary) 100%) center bottom;
+  background-size:
+    22.5% 3.6363636364px,
+    22.5% 3.6363636364px,
+    3.6363636364px 22.5%,
+    3.6363636364px 22.5%;
   background-repeat: no-repeat;
   transform: rotate(45deg) scale(1.1);
 }
-.title-bar button.close:active::before, .title-bar button.close:active::after {
+.title-bar button.close:active::before,
+.title-bar button.close:active::after {
   opacity: 1;
 }
 .title-bar button.resize {
-  background: linear-gradient(var(--secondary) 0%, var(--secondary) 100%) left 58%, linear-gradient(to bottom, var(--secondary) 0%, var(--secondary) 100%) 58% top;
-  background-size: 60% 4px, 4px 60%;
+  background:
+    linear-gradient(var(--secondary) 0%, var(--secondary) 100%) left 58%,
+    linear-gradient(to bottom, var(--secondary) 0%, var(--secondary) 100%) 58%
+      top;
+  background-size:
+    60% 4px,
+    4px 60%;
   background-repeat: no-repeat;
   background-color: var(--primary);
 }
@@ -487,10 +686,28 @@ h2 {
   background-color: var(--primary);
 }
 .window-pane::-webkit-scrollbar-track {
-  background: linear-gradient(45deg, var(--secondary) 25%, transparent 25%, transparent 75%, var(--secondary) 75%, var(--secondary)), linear-gradient(45deg, var(--secondary) 25%, transparent 25%, transparent 75%, var(--secondary) 75%, var(--secondary));
+  background:
+    linear-gradient(
+      45deg,
+      var(--secondary) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--secondary) 75%,
+      var(--secondary)
+    ),
+    linear-gradient(
+      45deg,
+      var(--secondary) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--secondary) 75%,
+      var(--secondary)
+    );
   background-color: var(--primary);
   background-size: 4px 4px;
-  background-position: 0 0, 2px 2px;
+  background-position:
+    0 0,
+    2px 2px;
   width: 10px;
   border-left: 4px solid var(--secondary);
 }
@@ -525,13 +742,13 @@ h2 {
   font-weight: 100;
 }
 
-
 /* buttons */
-.btn, .btn-default {
+.btn,
+.btn-default {
   min-height: 20px;
   min-width: 59px;
   padding: 0 20px;
-  text-align:center;
+  text-align: center;
   background: var(--primary);
   border-style: solid;
   border-width: 5.5px;
@@ -546,7 +763,7 @@ h2 {
 
 .btn:active {
   background: var(--secondary);
-  border-radius:6px;
+  border-radius: 6px;
   color: var(--primary);
   font-family: Chicago_12;
 }
@@ -554,7 +771,7 @@ h2 {
 .btn:disabled {
   min-height: 20px;
   min-width: 59px;
-  text-align:center;
+  text-align: center;
   background: var(--primary);
   border-style: solid;
   border-width: 5.5px;
@@ -576,15 +793,15 @@ h2 {
 }
 
 /* text input */
-input  {
+input {
   border: 1.5px solid var(--secondary);
   font-family: Chicago_12;
   font-size: 18px;
   padding-left: 5px;
 }
 
-input:focus  {
-  outline:none;
+input:focus {
+  outline: none;
 }
 
 input[type="text"]:focus-visible,
@@ -704,7 +921,6 @@ input[type="checkbox"]:checked + label::after {
   background-repeat: no-repeat;
 }
 
-
 input[type="checkbox"][disabled] + label::before {
   background: var(--surface);
 }
@@ -741,7 +957,7 @@ input[type="checkbox"][disabled]:checked + label::after {
 /* Form */
 form {
   font-family: "Inconsolata", Menlo, Chicago, Geneva;
-  font-size:14px;
+  font-size: 14px;
 }
 
 /* select menu */
@@ -760,8 +976,8 @@ select {
   position: relative;
   padding-left: 20px;
   -webkit-box-shadow: 2px 8px 0 0px var(--secondary);
-	   -moz-box-shadow: 2px 8px 0 0px var(--secondary);
-	        box-shadow: 2px 2px 0 -1px var(--secondary);
+  -moz-box-shadow: 2px 8px 0 0px var(--secondary);
+  box-shadow: 2px 2px 0 -1px var(--secondary);
 }
 
 /* menu-bar */
@@ -781,7 +997,9 @@ ul[role="menu-bar"] > [role="menu-item"] {
   position: relative;
   padding: 6px 10px;
 }
-ul[role="menu-bar"] > [role="menu-item"]:focus, ul[role="menu-bar"] > [role="menu-item"]:focus-within, ul[role="menu-bar"] > [role="menu-item"]:hover {
+ul[role="menu-bar"] > [role="menu-item"]:focus,
+ul[role="menu-bar"] > [role="menu-item"]:focus-within,
+ul[role="menu-bar"] > [role="menu-item"]:hover {
   background: var(--secondary);
   color: var(--primary);
   outline: none;
@@ -805,7 +1023,9 @@ ul[role="menu"]::before {
   position: absolute;
   left: 28px;
   width: 2px;
-  box-shadow: inset 1px 0 rgba(0, 0, 0, 0.15), inset -1px 0 var(--primary);
+  box-shadow:
+    inset 1px 0 rgba(0, 0, 0, 0.15),
+    inset -1px 0 var(--primary);
 }
 [role="menu-item"] ul[role="menu"] {
   display: none;
@@ -814,23 +1034,30 @@ ul[role="menu"]::before {
   top: 100%;
   z-index: 99;
 }
-ul[role="menu"] > [role="menu-item"] > a, ul[role="menu"] > [role="menu-item"] > button, ul[role="menu"] > [role="menu-item"][aria-haspopup="true"] {
+ul[role="menu"] > [role="menu-item"] > a,
+ul[role="menu"] > [role="menu-item"] > button,
+ul[role="menu"] > [role="menu-item"][aria-haspopup="true"] {
   all: unset;
   position: relative;
   padding: 5px 20px;
   display: block;
   width: 100%;
   box-sizing: border-box;
-
 }
-ul[role="menu"] > [role="menu-item"] > a:hover, ul[role="menu"] > [role="menu-item"] > button:hover, ul[role="menu"] > [role="menu-item"][aria-haspopup="true"]:hover, ul[role="menu"] > [role="menu-item"] > a:focus, ul[role="menu"] > [role="menu-item"] > button:focus, ul[role="menu"] > [role="menu-item"][aria-haspopup="true"]:focus {
+ul[role="menu"] > [role="menu-item"] > a:hover,
+ul[role="menu"] > [role="menu-item"] > button:hover,
+ul[role="menu"] > [role="menu-item"][aria-haspopup="true"]:hover,
+ul[role="menu"] > [role="menu-item"] > a:focus,
+ul[role="menu"] > [role="menu-item"] > button:focus,
+ul[role="menu"] > [role="menu-item"][aria-haspopup="true"]:focus {
   background: var(--secondary);
   color: var(--primary);
 }
 ul [role="menu-item"] {
   position: relative;
 }
-ul [role="menu-item"]:focus > [role="menu"], ul [role="menu-item"]:focus-within > [role="menu"] {
+ul [role="menu-item"]:focus > [role="menu"],
+ul [role="menu-item"]:focus-within > [role="menu"] {
   display: block;
 }
 ul [role="menu-item"].divider::after {
