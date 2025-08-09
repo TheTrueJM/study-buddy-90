@@ -24,3 +24,5 @@ def verify_credentials(name: str, password: str) -> bool:
         return bcrypt.checkpw(password.encode(), stored_hash)
     except Exception:
         return False
+    
+    
