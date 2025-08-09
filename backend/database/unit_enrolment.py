@@ -26,7 +26,7 @@ class UnitEnrolment:
         query = """
             SELECT ue.*, s.name, s.fax_n, s.pager_n, s.avatar_url
             FROM unit_enrolment ue
-            JOIN Student s ON ue.student_id = s.id
+            JOIN Student s ON ue.student_id = s.student_id
             WHERE ue.unit_code = ?
             ORDER BY s.name
         """
@@ -94,7 +94,7 @@ class UnitEnrolment:
         query = """
             SELECT ue.*, s.name as student_name, u.name as unit_name
             FROM unit_enrolment ue
-            JOIN Student s ON ue.student_id = s.id
+            JOIN Student s ON ue.student_id = s.student_id
             JOIN Units u ON ue.unit_code = u.code
             ORDER BY u.code, s.name
         """
@@ -112,7 +112,7 @@ class UnitEnrolment:
         query = """
             SELECT ue.*, s.name, s.fax_n, s.pager_n, s.avatar_url
             FROM unit_enrolment ue
-            JOIN Student s ON ue.student_id = s.id
+            JOIN Student s ON ue.student_id = s.student_id
             WHERE ue.unit_code = ? AND ue.availability LIKE ?
             ORDER BY s.name
         """

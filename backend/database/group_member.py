@@ -24,7 +24,7 @@ class GroupMember:
         query = """
             SELECT s.id, s.name, s.fax_n, s.pager_n, s.avatar_url
             FROM group_member gm
-            JOIN Student s ON gm.student_id = s.id
+            JOIN Student s ON gm.student_id = s.student_id
             WHERE gm.group_id = ?
             ORDER BY s.name
         """
@@ -66,7 +66,7 @@ class GroupMember:
             SELECT gm.group_id, gm.student_id, s.name as student_name, 
                    g.unit_code, g.num as assessment_num, g.id as group_number
             FROM group_member gm
-            JOIN Student s ON gm.student_id = s.id
+            JOIN Student s ON gm.student_id = s.student_id
             JOIN groups g ON gm.group_id = g.id
             ORDER BY g.unit_code, g.num, g.id, s.name
         """
@@ -78,9 +78,9 @@ class GroupMember:
         query = """
             SELECT DISTINCT s.id, s.name, s.fax_n, s.pager_n, s.avatar_url
             FROM Student s
-            JOIN unit_enrolment ue ON s.id = ue.student_id
+            JOIN unit_enrolment ue ON s.student_id = ue.student_id
             WHERE ue.unit_code = ?
-            AND s.id NOT IN (
+            AND s.student_id NOT IN (
                 SELECT DISTINCT gm.student_id
                 FROM group_member gm
                 JOIN groups g ON gm.group_id = g.id

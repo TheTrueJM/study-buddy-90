@@ -5,7 +5,7 @@ def create_tables():
     with get_db_connection() as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS Student (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
                 password BLOB NOT NULL,
                 fax_n TEXT,
@@ -50,7 +50,7 @@ def create_tables():
                 group_id INTEGER NOT NULL,
                 student_id INTEGER NOT NULL,
                 PRIMARY KEY (group_id, student_id),
-                FOREIGN KEY (student_id) REFERENCES Student (id)
+                FOREIGN KEY (student_id) REFERENCES Student (student_id)
             )
         """)
 
@@ -63,7 +63,7 @@ def create_tables():
                 availability TEXT,
                 PRIMARY KEY (unit_code, student_id),
                 FOREIGN KEY (unit_code) REFERENCES Units (code),
-                FOREIGN KEY (student_id) REFERENCES Student (id)
+                FOREIGN KEY (student_id) REFERENCES Student (student_id)
             )
         """)
 
@@ -72,7 +72,7 @@ def create_tables():
                 group_id INTEGER NOT NULL,
                 student_id INTEGER NOT NULL,
                 PRIMARY KEY (group_id, student_id),
-                FOREIGN KEY (student_id) REFERENCES Student (id)
+                FOREIGN KEY (student_id) REFERENCES Student (student_id)
             )
         """)
 
@@ -85,8 +85,8 @@ def create_tables():
                 created_at INTEGER NOT NULL,          -- unix epoch seconds
                 read INTEGER NOT NULL DEFAULT 0,      -- 0/1
                 CHECK (length(body) <= 160),
-                FOREIGN KEY (sender_id) REFERENCES Student (id),
-                FOREIGN KEY (recipient_id) REFERENCES Student (id)
+                FOREIGN KEY (sender_id) REFERENCES Student (student_id),
+                FOREIGN KEY (recipient_id) REFERENCES Student (student_id)
             )
         """)
 

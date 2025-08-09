@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
 from database.schema import init_database
@@ -11,6 +11,8 @@ from database.assessments import Assessments
 from database.unit_enrolment import UnitEnrolment
 from database.group_requests import GroupRequests
 from database.group_member import GroupMember
+from database.pager_and_fax import generate_contact_numbers
+from database.messages import Messages
 
 app = FastAPI(title="Study Buddy API")
 
@@ -18,8 +20,8 @@ app = FastAPI(title="Study Buddy API")
 def startup() -> None:
     init_database()
 
-name_input = "TestName"
-password_input = "123Password"
+name_input = "owentest"
+password_input = "owentest1234"
 
 @app.post("/login")
 def login():
@@ -29,6 +31,34 @@ def login():
         "success": verify_credentials(name_input, password_input)
     }
 
+class SignUpBody(BaseModel):
+    student_id: int
+    name: str
+    password: str
+    avatar_url: Optional[str] = ""
+
+@app.post("/auth/signup", tags=["auth"])
+def signup(body: SignUpBody):
+    if not hasattr(Student, "exists_by_id") or not hasattr(Student, "create_with_id"):
+        raise HTTPException(status_code=500, detail="Student helper methods missing (exists_by_id/create_with_id)")
+    if Student.exists_by_id(body.student_id):
+        raise HTTPException(status_code=409, detail="Student ID already exists")
+
+    pager_n, fax_n = generate_contact_numbers(str(body.student_id))
+
+    new_id = Student.create_with_id(
+        student_id=body.student_id,
+        name=body.name,
+        password=body.password,
+        fax_n=fax_n,
+        pager_n=pager_n,
+        avatar_url=body.avatar_url or ""
+    )
+
+    row = Student.get_by_id(new_id)
+    if row and "password" in row:
+        del row["password"]
+    return {"ok": True, "student": row}
 
 class StudentCreate(BaseModel):
     name: str
@@ -45,16 +75,15 @@ def list_students() -> List[Dict[str, Any]]:
     return Student.get_all()
 
 @app.get("/students/{student_id}", tags=["students"])
-def get_student_by_id(student_id: int):
+def get_student(student_id: int):
     row = Student.get_by_id(student_id)
     if not row:
-        raise HTTPException(404, "Student not found")
+        raise HTTPException(status_code=404, detail="Student not found")
+    row.pop("password", None)
     return row
 
 @app.post("/students", tags=["students"])
 def create_student(body: StudentCreate):
-    #if len(search_students(body.name)) <= 1:
-     #   raise HTTPException(404, "Student not found")
     new_id = Student.create(
         name=body.name,
         password=body.password,  
@@ -316,13 +345,10 @@ def requests_for_group(group_id: int):
 
 @app.post("/group-requests/{group_id}/{student_id}/accept", tags=["group_requests"])
 def accept_group_request(group_id: int, student_id: int):
-    # Ensure request exists
     if not GroupRequests.request_exists(group_id, student_id):
         raise HTTPException(404, "Request not found")
-    # Add member to group
     if not GroupMember.add_member(group_id, student_id):
         raise HTTPException(400, "Could not add member to group (may already be in)")
-    # Remove the request
     GroupRequests.delete_request(group_id, student_id)
     return {"ok": True, "message": "Request accepted and member added"}
 
@@ -333,6 +359,55 @@ def deny_group_request(group_id: int, student_id: int):
     GroupRequests.delete_request(group_id, student_id)
     return {"ok": True, "message": "Request denied and removed"}
 
+class SendMessageBody(BaseModel):
+    sender_id: int
+    recipient_pager: str
+    body: str = Field(..., max_length=160)
+
+@app.post("/messages", tags=["messages"])
+def send_message(body: SendMessageBody):
+    recipient = Student.get_by_pager(body.recipient_pager)
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient pager not found")
+    try:
+        msg_id = Messages.send(
+            sender_id=body.sender_id,
+            recipient_id=recipient["student_id"],
+            body=body.body
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"ok": True, "message_id": msg_id}
+
+@app.get("/users/{student_id}/inbox", tags=["messages"])
+def get_inbox(student_id: int):
+    return Messages.get_inbox(student_id)
+
+@app.get("/users/{student_id}/outbox", tags=["messages"])
+def get_outbox(student_id: int):
+    return Messages.get_outbox(student_id)
+
+@app.get("/users/{a_id}/conversation/{b_id}", tags=["messages"])
+def get_conversation(a_id: int, b_id: int, limit: int = 50):
+    return Messages.get_conversation(a_id, b_id, limit)
+
+@app.post("/messages/{message_id}/read", tags=["messages"])
+def mark_message_read(message_id: int):
+    if not Messages.mark_read(message_id):
+        raise HTTPException(status_code=404, detail="Message not found")
+    return {"ok": True}
+
+@app.delete("/messages/{message_id}", tags=["messages"])
+def delete_message(message_id: int, acting_user_id: int):
+    if not Messages.delete(message_id, acting_user_id):
+        raise HTTPException(status_code=404, detail="Message not found or no permission")
+    return {"ok": True}
+
+@app.get("/users/{student_id}/unread-count", tags=["messages"])
+def unread_count(student_id: int):
+    return {"unread": Messages.unread_count(student_id)}
+
+
 #database test
 @app.get("/test-db")
 def test_db():
@@ -342,3 +417,4 @@ def test_db():
         return {"tables": [row[0] for row in result]}
     except Exception as e:
         raise HTTPException(500, f"DB Error: {e}")
+

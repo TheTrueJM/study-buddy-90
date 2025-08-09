@@ -23,7 +23,7 @@ class Messages:
         q = """
             SELECT m.*, s.name AS sender_name
             FROM messages m
-            JOIN Student s ON m.sender_id = s.id
+            JOIN Student s ON m.sender_id = s.student_id
             WHERE m.recipient_id = ?
             ORDER BY m.created_at DESC, m.id DESC
         """
@@ -35,7 +35,7 @@ class Messages:
         q = """
             SELECT m.*, r.name AS recipient_name
             FROM messages m
-            JOIN Student r ON m.recipient_id = r.id
+            JOIN Student r ON m.recipient_id = r.student_id
             WHERE m.sender_id = ?
             ORDER BY m.created_at DESC, m.id DESC
         """
@@ -47,8 +47,8 @@ class Messages:
         q = """
             SELECT m.*, s.name AS sender_name, r.name AS recipient_name
             FROM messages m
-            JOIN Student s ON m.sender_id = s.id
-            JOIN Student r ON m.recipient_id = r.id
+            JOIN Student s ON m.sender_id = s.student_id
+            JOIN Student r ON m.recipient_id = r.student_id
             WHERE (m.sender_id = ? AND m.recipient_id = ?)
                OR (m.sender_id = ? AND m.recipient_id = ?)
             ORDER BY m.created_at DESC, m.id DESC
