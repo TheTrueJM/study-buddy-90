@@ -2,7 +2,8 @@
   import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
   import { params } from "svelte-spa-router";
-  import { createGroupRequest } from '../js/api.js';
+  import { joinGroupMember } from '../js/api.js';
+  import { ensureUser, getUserId } from '../js/User.js';
 
   // Route params
   let code = "";
@@ -17,29 +18,30 @@
   let groups = [];
   let loading = true;
   let error = null;
+  let toast = "";
+  let newGroupName = "";
 
-  // Track join requests locally
-  let requested = new Set();
+  // Track joined groups locally for button disabling
+  let joined = new Set();
 
-  async function requestJoin(group) {
-    if (requested.has(group.id)) return;
-    
-    try {
-      const result = await createGroupRequest(group.id);
-      if (result) {
-        requested = new Set(requested);
-        requested.add(group.id);
-      }
-    } catch (err) {
-      console.error('Failed to request join:', err);
+  async function joinGroup(group) {
+    if (joined.has(String(group.id))) return;
+    await ensureUser();
+    const uid = getUserId();
+    const res = await joinGroupMember(group.id, uid);
+    if (res) {
+      joined = new Set(joined);
+      joined.add(String(group.id));
     }
   }
 
   function viewDetails(group) {
-    // Create a consistent ID format for the group detail page
-    const groupId = `${group.unit_code}-${group.num}-${group.id}`;
-    push(`/group/${groupId}`);
+    // Use numeric group ID directly to match backend
+    push(`/group/${group.id}`);
   }
+
+  import { fetchAssessmentGroups } from "../js/api.js";
+  import { createAssessmentGroup } from "../js/api.js";
 
   onMount(async () => {
     if (!code || !num) {
@@ -49,9 +51,7 @@
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/units/${code}/assessments/${num}/groups`);
-      if (!response.ok) throw new Error('Failed to fetch groups');
-      groups = await response.json();
+      groups = await fetchAssessmentGroups(code, num);
     } catch (err) {
       error = "Failed to load groups for this assessment";
       console.error('Error fetching assessment groups:', err);
@@ -59,6 +59,21 @@
       loading = false;
     }
   });
+
+  async function createGroup() {
+    try {
+      const res = await createAssessmentGroup(code, num, newGroupName.trim() || undefined);
+      if (res) {
+        toast = `Created ${res.name || 'group'}`;
+        newGroupName = "";
+        groups = await fetchAssessmentGroups(code, num);
+        setTimeout(() => (toast = ""), 1500);
+      }
+    } catch (e) {
+      toast = 'Failed to create group';
+      setTimeout(() => (toast = ""), 1500);
+    }
+  }
 </script>
 
 <main style="padding:12px; display:flex; justify-content:center;">
@@ -70,13 +85,21 @@
     </div>
     <div class="separator"></div>
     <div class="window-pane">
-      <div class="details-bar" style="align-items:center;">
-        <div class="heading">Available Groups</div>
+      <div class="details-bar" style="align-items:center; gap:8px;">
+        <div class="heading" style="flex:1;">Available Groups</div>
+        <input placeholder="New group name (optional)" bind:value={newGroupName} style="width:240px;" />
+        <button class="default" on:click={createGroup}>Create Group</button>
       </div>
 
       {#if error}
         <div class="alert-box outer-border inner-border" style="margin:12px 0; background-color: #ff6b6b;">
           <div class="alert-contents">{error}</div>
+        </div>
+      {/if}
+
+      {#if toast}
+        <div class="alert-box outer-border inner-border" style="margin:12px 0;">
+          <div class="alert-contents">{toast}</div>
         </div>
       {/if}
 
@@ -87,17 +110,16 @@
           {#each groups as g}
             <li class="field-row" style="justify-content:space-between;">
               <div>
-                <strong>Group {g.id}</strong> — {g.unit_code} — Assessment {g.num}
-                <span style="opacity:.7;">(Members: {g.current_members || 0}/{g.max_members || 4})</span>
+                <strong>{g.name || `Group ${g.id}`}</strong> — {g.unit_code} — Assessment {g.num}
               </div>
               <div class="field-row" style="gap:6px;">
                 <button on:click={() => viewDetails(g)}>View Details</button>
                 <button
                   class="default"
-                  on:click={() => requestJoin(g)}
-                  disabled={requested.has(g.id)}
+                  on:click={() => joinGroup(g)}
+                  disabled={joined.has(String(g.id))}
                 >
-                  {requested.has(g.id) ? "Requested" : "Request to Join"}
+                  {joined.has(String(g.id)) ? "Joined" : "Join Group"}
                 </button>
               </div>
             </li>

@@ -1,33 +1,44 @@
 <script>
   import { push } from "svelte-spa-router";
   import { onMount } from 'svelte';
-  import { getUserId } from '../js/User.js';
+  import { getUserId, ensureUser } from '../js/User.js';
+  import { fetchStudentEnrolments } from '../js/api.js';
 
   let myUnits = [];
   let loading = true;
   let error = null;
 
   onMount(async () => {
-    const uid = getUserId();
+    let uid = getUserId();
+    if (!uid) {
+      await ensureUser();
+      uid = getUserId();
+    }
     if (!uid) {
       loading = false;
-      error = 'You are not logged in.';
+      error = 'No user available.';
       return;
     }
     try {
-      const response = await fetch(`http://localhost:8000/students/${uid}/enrolments`);
-      if (!response.ok) throw new Error('Failed to fetch enrolled units');
-      const enrolments = await response.json();
-      
-      // The enrollment endpoint already includes unit details
-      myUnits = enrolments.map(enrolment => ({
-        code: enrolment.unit_code,
-        name: enrolment.unit_name,
-        description: enrolment.description,
-        completed: enrolment.completed,
-        grade: enrolment.grade,
-        availability: enrolment.availability
-      }));
+      const [enrolments, allUnits] = await Promise.all([
+        fetchStudentEnrolments(uid),
+        (async () => {
+          try { return await (await fetch('http://localhost:8000/units')).json(); } catch { return []; }
+        })()
+      ]);
+      const byCode = new Map((allUnits || []).map(u => [u.code, u]));
+
+      myUnits = (enrolments || []).map(e => {
+        const u = byCode.get(e.unit_code) || {};
+        return {
+          code: e.unit_code,
+          name: e.unit_name || u.name || e.unit_code,
+          description: e.description || u.description || '',
+          completed: e.completed ?? false,
+          grade: e.grade ?? null,
+          availability: e.availability ?? ''
+        };
+      });
     } catch (err) {
       error = "Failed to load your enrolled units";
       console.error('Error fetching enrolled units:', err);
@@ -37,7 +48,8 @@
   });
 
   function goToDetails(code) {
-    push(`/unit/${code}`);
+    // Show available groups for the first assessment of the unit
+    push(`/assessment-groups/${code}/1`);
   }
 </script>
 

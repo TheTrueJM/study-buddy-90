@@ -25,6 +25,16 @@ export async function fetchUnits() {
   }
 }
 
+export async function fetchStudents() {
+  try {
+    const response = await fetch(`${API_BASE}/students`);
+    if (!response.ok) throw new Error("Failed to fetch students");
+    return await response.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchStudentsLookingForTeam(unitCode = null) {
   try {
     const response = await fetch(`${API_BASE}/team-posts/looking-for-team`);
@@ -229,6 +239,20 @@ export async function fetchAssessmentGroups(unitCode, assessmentNum) {
   }
 }
 
+export async function createAssessmentGroup(unitCode, assessmentNum, name) {
+  try {
+    const response = await fetch(`${API_BASE}/units/${unitCode}/assessments/${assessmentNum}/groups`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    if (!response.ok) throw new Error('Failed to create group');
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function authenticateUser(username, password) {
   try {
     const response = await fetch(`${API_BASE}/auth`, {
@@ -240,5 +264,51 @@ export async function authenticateUser(username, password) {
     return await response.json();
   } catch {
     return { success: false, message: "Authentication failed" };
+  }
+}
+
+// DB-backed membership helpers
+export async function fetchMyDbGroups(studentId) {
+  try {
+    const r = await fetch(`${API_BASE}/students/${studentId}/groups`);
+    if (!r.ok) throw new Error('Failed to fetch my groups');
+    return await r.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchGroupMembers(groupId) {
+  try {
+    const r = await fetch(`${API_BASE}/groups/${groupId}/members`);
+    if (!r.ok) throw new Error('Failed to fetch group members');
+    return await r.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function joinGroupMember(groupId, studentId) {
+  try {
+    const r = await fetch(`${API_BASE}/groups/${groupId}/members`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ student_id: studentId })
+    });
+    if (!r.ok) throw new Error('Failed to join group');
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+// Additional helper for student-specific enrolments
+export async function fetchStudentEnrolments(studentId) {
+  try {
+    const response = await fetch(`${API_BASE}/students/${studentId}/enrolments`);
+    if (!response.ok) throw new Error("Failed to fetch student enrolments");
+    return await response.json();
+  } catch {
+    return [];
   }
 }

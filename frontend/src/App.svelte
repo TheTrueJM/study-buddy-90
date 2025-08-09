@@ -4,13 +4,11 @@
 
   import Navbar from "./components/navbar.svelte";
 
-  import Authentication from "./routes/Authentication.svelte";
   import Units from "./routes/Units.svelte";
   import MyUnits from "./routes/MyUnits.svelte";
   import Unit from "./routes/Unit.svelte";
   import Group from "./routes/Group.svelte";
   import Groups from "./routes/Groups.svelte";
-  import Assessments from "./routes/Assessments.svelte";
   import GroupNotIn from "./routes/GroupNotIn.svelte";
   import AssessmentGroups from "./routes/AssessmentGroups.svelte";
   import CornerGif from "./components/CornerGif.svelte";
@@ -18,40 +16,22 @@
   import RadioPlayer from "./components/RadioPlayer.svelte";
   import { onMount } from 'svelte';
 
-  import { getCurrentUser, isAuthenticated } from "./js/User.js";
-  import { get } from "svelte/store";
+  import { ensureUser } from "./js/User.js";
+  
 
   const routes = {
-    "/": Authentication,
-    "/login": Authentication,
+    "/": Units,
     "/units": Units,
     "/my-units": MyUnits,
     "/unit/:code": Unit,
     "/group/:id": Group,
     "/groups": Groups,
-    "/assessments": Assessments,
     "/assessment-groups/:code/:num": AssessmentGroups,
     "/group-not-in": GroupNotIn,
   };
 
-  getCurrentUser();
-
-  function routeGuard(detail) {
-    const currentRoute = detail.location || window.location.hash.slice(1);
-    const authenticated = get(isAuthenticated);
-
-    if (!authenticated && currentRoute !== "/" && currentRoute !== "/login") {
-      push("/");
-      return false;
-    }
-
-    if (authenticated && (currentRoute === "/" || currentRoute === "/login")) {
-      push("/units");
-      return false;
-    }
-
-    return true;
-  }
+  // Auto-login to the first user on app start
+  onMount(() => { ensureUser(); });
 
   let radioTop = 180;
   function positionRadio() {
@@ -86,7 +66,7 @@
     <RadioPlayer />
   </div>
 
-  <Router {routes} on:routeEvent={routeGuard} />
+  <Router {routes} />
   <CornerGif />
   <SiteButtons />
   <div class="crt-mask" aria-hidden="true"></div>

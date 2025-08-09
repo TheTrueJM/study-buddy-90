@@ -7,9 +7,7 @@
   let groups = [];
   let loading = true;
 
-  let showCreate = false;
-  let createForm = { unit_code: "", num: 1 };
-  let toast = "";
+  // Create-group UI removed to avoid hitting unsupported backend endpoints
 
   onMount(async () => {
     await loadData();
@@ -19,9 +17,7 @@
     try {
       loading = true;
       [units, groups] = await Promise.all([fetchUnits(), fetchGroups()]);
-      if (units.length > 0) {
-        createForm.unit_code = units[0].code;
-      }
+      // no-op
     } catch (error) {
       console.error("Failed to load data:", error);
     } finally {
@@ -29,33 +25,7 @@
     }
   }
 
-  async function createGroup() {
-    if (!createForm.unit_code || createForm.num < 1) return;
-    
-    try {
-      const response = await fetch("http://localhost:8000/groups", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          unit_code: createForm.unit_code,
-          num: createForm.num,
-        }),
-      });
-      
-      if (response.ok) {
-        toast = "Group created";
-        await loadData();
-        showCreate = false;
-        setTimeout(() => (toast = ""), 1500);
-      } else {
-        toast = "Failed to create group";
-        setTimeout(() => (toast = ""), 1500);
-      }
-    } catch (error) {
-      toast = "Error creating group";
-      setTimeout(() => (toast = ""), 1500);
-    }
-  }
+  // createGroup capability removed (backend lacks supporting method)
 </script>
 
 <main
@@ -69,49 +39,11 @@
     </div>
     <div class="separator"></div>
     <div class="window-pane">
-      <div class="details-bar" style="align-items:center;">
-        <div class="heading">View all groups</div>
-        <div class="field-row" style="gap:6px;">
-          <button on:click={() => (showCreate = !showCreate)}
-            >{showCreate ? "Close" : "Create Group"}</button
-          >
+        <div class="details-bar" style="align-items:center;">
+          <div class="heading">View all groups</div>
         </div>
-      </div>
 
-      {#if toast}
-        <div class="alert-box outer-border inner-border" style="margin:12px 0;">
-          <div class="alert-contents">{toast}</div>
-        </div>
-      {/if}
-
-      {#if showCreate}
-        <div class="standard-dialog" style="margin:12px 0;">
-          <div class="field-row">
-            <label for="unit">Unit</label>
-            <select id="unit" bind:value={createForm.unit_code}>
-              {#each units as u}
-                <option value={u.code}>{u.code}</option>
-              {/each}
-            </select>
-          </div>
-          <div class="field-row">
-            <label for="anum">Assessment</label>
-            <input
-              id="anum"
-              type="number"
-              min="1"
-              bind:value={createForm.num}
-            />
-          </div>
-          <div
-            class="field-row"
-            style="justify-content:flex-end; margin-top:8px;"
-          >
-            <button on:click={() => (showCreate = false)}>Cancel</button>
-            <button class="default" on:click={createGroup}>Create</button>
-          </div>
-        </div>
-      {/if}
+      
 
       {#if loading}
         <p style="text-align:center; opacity:0.7; padding:2rem;">Loading groups...</p>

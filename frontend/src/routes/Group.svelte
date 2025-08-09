@@ -1,7 +1,8 @@
 <script>
   import { onMount } from 'svelte';
   import { params } from "svelte-spa-router";
-  import { fetchGroupDetails, createGroupRequest } from '../js/api.js';
+  import { fetchGroupDetails, fetchGroupMembers, joinGroupMember } from '../js/api.js';
+  import { ensureUser, getUserId } from '../js/User.js';
 
   let id = "";
   let group = null;
@@ -9,7 +10,7 @@
   let error = null;
   
   const currentUserId = 1;
-  const myGroupIds = new Set(["G-214", "G-101"]);
+  let joinedIds = new Set();
   
   let joined = false;
   let requested = false;
@@ -32,10 +33,17 @@
   async function loadGroup() {
     try {
       loading = true;
+      await ensureUser();
+      const uid = getUserId();
       group = await fetchGroupDetails(id);
       
       if (group) {
-        joined = myGroupIds.has(id) || group.members.some(m => m.student_id === currentUserId);
+        try {
+          joinedIds = new Set((JSON.parse(localStorage.getItem('joinedGroupIds') || '[]') || []).map(String));
+        } catch { joinedIds = new Set(); }
+        const members = await fetchGroupMembers(group.id || parseInt(id,10));
+        group.members = members || [];
+        joined = (group.members || []).some(m => String(m.id) === String(uid));
         messages = group.messages || [];
         incomingRequests = group.incoming_requests || [];
       } else {
@@ -70,14 +78,15 @@
 
   async function requestJoin() {
     if (joined || requested) return;
-    
-    try {
-      const result = await createGroupRequest(group.group_id || id);
-      if (result) {
-        requested = true;
-      }
-    } catch (err) {
-      console.error('Failed to request join:', err);
+    const targetId = group?.id ?? parseInt(id, 10);
+    await ensureUser();
+    const uid = getUserId();
+    const res = await joinGroupMember(targetId, uid);
+    if (res) {
+      const members = await fetchGroupMembers(targetId);
+      group.members = members || [];
+      joined = (group.members || []).some(m => String(m.id) === String(uid));
+      requested = joined;
     }
   }
 </script>
@@ -187,7 +196,7 @@
 
         {#if !joined}
           <div class="field-row" style="justify-content:flex-end; margin-top:12px;">
-            <button class="default" on:click={requestJoin} disabled={requested}>{requested ? 'Requested' : 'Request to Join Group'}</button>
+            <button class="default" on:click={requestJoin} disabled={requested}>{requested ? 'Joined' : 'Join Group'}</button>
           </div>
         {/if}
       {:else}

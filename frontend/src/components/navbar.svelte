@@ -1,17 +1,14 @@
 <script>
   import { push } from "svelte-spa-router";
   import { onMount } from 'svelte';
-  import { getCurrentUser, logoutUser, isAuthenticated, currentUser } from "../js/User.js";
+  import { ensureUser, currentUser } from "../js/User.js";
   
   const go = (p) => (push ? push(p) : (location.hash = p));
   
-  const handleLogout = () => {
-    logoutUser();
-    go("/");
-  };
+  // No logout; app assumes user is authenticated
 
   onMount(() => {
-    getCurrentUser();
+    ensureUser();
   });
 </script>
 
@@ -26,26 +23,14 @@
     </div>
     <div class="separator"></div>
     <div class="window-pane">
-      {#if $isAuthenticated}
-        <div class="user-info" style="margin-bottom: 8px; font-size: 12px;">
-          Welcome, <strong>{$currentUser?.name || 'User'}</strong>
-        </div>
-        <ul class="nav-list">
-          <li><button class="nav-link" on:click={() => go("/units")}>Units</button></li>
-          <li><button class="nav-link" on:click={() => go("/my-units")}>My Units</button></li>
-          <li><button class="nav-link" on:click={() => go("/assessments")}>Assessments</button></li>
-          <li><button class="nav-link" on:click={() => go("/groups")}>My Groups</button></li>
-        </ul>
-        
-        <div style="margin-top:8px;">
-          <button class="nav-link logout-button" on:click={handleLogout}>Logout</button>
-        </div>
-      {:else}
-        <ul class="nav-list">
-          <li><button class="nav-link" on:click={() => go("/")}>Login</button></li>
-        </ul>
-        
-      {/if}
+      <div class="user-info" style="margin-bottom: 8px; font-size: 12px;">
+        Welcome, <strong>{$currentUser?.name || 'User'}</strong>
+      </div>
+      <ul class="nav-list">
+        <li><button class="nav-link" on:click={() => go("/units")}>Units</button></li>
+        <li><button class="nav-link" on:click={() => go("/my-units")}>My Units</button></li>
+        <li><button class="nav-link" on:click={() => go("/groups")}>My Groups</button></li>
+      </ul>
       
     </div>
   </div>
