@@ -27,66 +27,88 @@
   <!-- Hero -->
   <Card title="Study Buddy">
     <p>
-        <strong>Find teammates for your uni assessments</strong> — retro Mac vibe,
-        simple and fast.
+      <strong>Find teammates for your uni assessments</strong> — retro Mac vibe,
+      simple and fast.
     </p>
     <div class="field-row" style="justify-content:flex-end;">
-        <button>About</button>
-        <button class="default">Get Started</button>
+      <button>About</button>
+      <button class="default">Get Started</button>
     </div>
   </Card>
 
   <!-- Quick Post -->
   <Card title="Find a Team">
     <div class="field-row">
-        <label for="unit">Unit</label>
-        <select id="unit" bind:value={search.unit}>
-          {#each units as u}<option value={u}>{u}</option>{/each}
-        </select>
-      </div>
-      <div class="field-row">
-        <label
-          ><input type="checkbox" bind:checked={search.looking} /> Looking for team</label
-        >
-        <label
-          ><input type="checkbox" bind:checked={search.openMsg} /> Open to messages</label
-        >
-      </div>
-      <div class="field-row">
-        <label for="note">Note</label>
-        <input
-          id="note"
-          type="text"
-          placeholder="Prefer weekdays 2–5pm"
-          bind:value={search.note}
-        />
-      </div>
-      <div class="field-row" style="justify-content:flex-end; margin-top:8px;">
-        <button on:click={() => (search.note = "")}>Cancel</button>
-        <button class="default" on:click={post}>Post</button>
-      </div>
+      <label for="unit">Unit</label>
+      <select id="unit" bind:value={search.unit}>
+        {#each units as u}<option value={u}>{u}</option>{/each}
+      </select>
+    </div>
+    <div class="field-row">
+      <label
+        ><input type="checkbox" bind:checked={search.looking} /> Looking for team</label
+      >
+      <label
+        ><input type="checkbox" bind:checked={search.openMsg} /> Open to messages</label
+      >
+    </div>
+    <div class="field-row">
+      <label for="note">Note</label>
+      <input
+        id="note"
+        type="text"
+        placeholder="Prefer weekdays 2–5pm"
+        bind:value={search.note}
+      />
+    </div>
+    <div class="field-row" style="justify-content:flex-end; margin-top:8px;">
+      <button on:click={() => (search.note = "")}>Cancel</button>
+      <button class="default" on:click={post}>Post</button>
+    </div>
   </Card>
 
   <!-- Groups -->
-  <card>
-      <ul style="padding-left:1rem;">
-        {#each groups as g}
-          <li class="field-row" style="justify-content:space-between;">
-            <div>
-              <strong>{g.name}</strong> — {g.unit} — {g.members}
-              <span style="opacity:.7;">({g.time})</span>
-            </div>
-            <div>
-              <button>View</button><button class="default">Join</button>
-            </div>
-          </li>
-        {/each}
-      </ul>
-      <div class="field-row" style="justify-content:flex-end;">
-        <button on:click={refresh}>Refresh</button>
-      </div>
-    </card>
+  <Card>
+    <ul style="padding-left:1rem;">
+      {#each groups as g}
+        <li class="field-row" style="justify-content:space-between;">
+          <div>
+            <strong>{g.name}</strong> — {g.unit} — {g.members}
+            <span style="opacity:.7;">({g.time})</span>
+          </div>
+          <div>
+            <button>View</button><button class="default">Join</button>
+          </div>
+        </li>
+      {/each}
+    </ul>
+    <div class="field-row" style="justify-content:flex-end;">
+      <button on:click={refresh}>Refresh</button>
+    </div>
+  </Card>
 </main>
 
 <style>
+  .overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+  }
+  .auth .title-bar {
+    height: 26px;
+  }
+  .auth .title-bar .title {
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .auth,
+  .auth button,
+  .auth input,
+  .auth select {
+    font-family: "ChicagoFLF", "Monaco", monospace;
+  }
 </style>
