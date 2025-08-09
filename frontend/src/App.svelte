@@ -15,7 +15,7 @@
   import AssessmentGroups from "./routes/AssessmentGroups.svelte";
 
   const routes = {
-    "/": Units, // Auto-redirect to units since user is authenticated
+    "/": Authentication, // Auto-redirect to units since user is authenticated
     "/units": Units,
     "/my-units": MyUnits,
     "/unit/:code": Unit,

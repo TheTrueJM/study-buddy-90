@@ -1,11 +1,18 @@
 <script>
   import { push } from "svelte-spa-router";
-  import { authenticateUser } from "../js/User.js";
+  import { setUserId } from "../js/User.js";
+  import { authenticateUser } from "../js/api.js";
 
-  let email = "",
-    password = "";
+  let username = "";
+  let password = "";
+  let fail = false;
+
   const submit = () => {
-    alert("Login demo");
+    if (authenticateUser()) {
+      setUserId(username);
+    } else {
+      fail = true;
+    }
   };
 </script>
 
@@ -19,7 +26,7 @@
     <div class="separator"></div>
     <div class="window-pane">
       <div class="field-row">
-        <input type="email" placeholder="Email" bind:value={email} />
+        <input type="text" placeholder="Username" bind:value={username} />
       </div>
       <div class="field-row">
         <input type="password" placeholder="Password" bind:value={password} />

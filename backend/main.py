@@ -11,6 +11,7 @@ from database.groups import Groups
 from database.unit_enrolment import UnitEnrolment
 from database.group_requests import GroupRequests
 from database.team_posts import TeamPosts
+from database.authentication import verify_credentials
 
 app = FastAPI(title="Study Buddy API")
 
@@ -34,7 +35,7 @@ def startup() -> None:
 
 class StudentCreate(BaseModel):
     name: str
-    password: str  
+    password: str
     fax_n: Optional[str] = ""
     pager_n: Optional[str] = ""
     avatar_url: Optional[str] = ""
@@ -57,7 +58,7 @@ def get_student(student_id: int):
 def create_student(body: StudentCreate):
     new_id = Student.create(
         name=body.name,
-        password=body.password,  
+        password=body.password,
         fax_n=body.fax_n or "",
         pager_n=body.pager_n or "",
         avatar_url=body.avatar_url or "",
@@ -69,7 +70,7 @@ def update_student(student_id: int, body: StudentUpdate):
     ok = Student.update(
         student_id,
         body.name,
-        body.password,  
+        body.password,
         body.fax_n or "",
         body.pager_n or "",
         body.avatar_url or "",
@@ -280,7 +281,7 @@ def create_group_request(body: GroupRequestCreate):
 @app.delete("/group-requests/{group_id}/{student_id}", tags=["group_requests"])
 def delete_group_request(group_id: int, student_id: int):
     if not GroupRequests.delete_request(group_id, student_id):
-        raise HTTPException(404, "Request not found") 
+        raise HTTPException(404, "Request not found")
     return {"ok": True}
 
 class TeamPostCreate(BaseModel):
@@ -315,6 +316,13 @@ def create_team_post(body: TeamPostCreate):
 def delete_team_post(post_id: int):
     if not TeamPosts.delete_post(post_id):
         raise HTTPException(404, "Post not found")
+    return {"ok": True}
+
+class authParams(BaseModel):
+   pass
+
+@app.post("/auth", tags=["auth"])
+def auth(body: authParams):
     return {"ok": True}
 
 #database test
