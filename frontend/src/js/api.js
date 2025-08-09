@@ -154,32 +154,15 @@ export async function fetchGroupDetails(groupId) {
     if (!response.ok) throw new Error("Failed to fetch group details");
     const groups = await response.json();
 
-    let group = null;
-    if (groupId.includes("-")) {
-      const [unit_code, num, id] = groupId.split("-");
-      group = groups.find((g) => g.unit_code === unit_code && String(g.num) === num && String(g.id) === id);
-    } else {
-      group = groups.find((g) => String(g.id) === String(groupId));
-    }
-
+    const group = groups.find((g) => String(g.id) === String(groupId));
     if (!group) throw new Error("Group not found");
 
     return {
       ...group,
-      members: [
-        { student_id: 1, name: "You", avatar: "https://cdn.discordapp.com/embed/avatars/0.png", availability: "Mon-Wed 2-6pm, Fri 10am-2pm" },
-        { student_id: 2, name: "Alice Johnson", avatar: "https://cdn.discordapp.com/embed/avatars/0.png", availability: "Tue-Thu 1-5pm, Sat 9am-1pm" },
-        { student_id: 3, name: "Bob Smith", avatar: "https://cdn.discordapp.com/embed/avatars/1.png", availability: "Mon-Fri 3-7pm" },
-      ],
-      messages: [
-        { id: 1, from: "Alice Johnson", text: "Hey team, when can we meet?" },
-        { id: 2, from: "You", text: "Tomorrow 2pm works for me." },
-        { id: 3, from: "Bob Smith", text: "Same here!" },
-      ],
-      incoming_requests: [
-        { student_id: 4, name: "Charlie Brown", avatar: "https://cdn.discordapp.com/embed/avatars/2.png", availability: "Weekends 10am-4pm" },
-        { student_id: 5, name: "Diana Prince", avatar: "https://cdn.discordapp.com/embed/avatars/3.png", availability: "Mon-Wed evenings" },
-      ],
+      members: [],
+      messages: [],
+      incoming_requests: [],
+      max_members: 5
     };
   } catch {
     return null;
