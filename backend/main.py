@@ -29,7 +29,6 @@ def login():
         "success": verify_credentials(name_input, password_input)
     }
 
-
 class StudentCreate(BaseModel):
     name: str
     password: str  
