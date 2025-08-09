@@ -1,14 +1,16 @@
+import bcrypt
 from typing import List, Dict, Any
 from .connection import execute_query, execute_update, execute_insert
 
 class Student:
     @staticmethod
-    def create(name: str, password: bytes, fax_n: str, pager_n: str, avatar_url: str) -> int:
+    def create(name: str, password: str, fax_n: str, pager_n: str, avatar_url: str) -> int:
+        hashedpw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
         query = """
             INSERT INTO Student (name, password, fax_n, pager_n, avatar_url)
             VALUES (?, ?, ?, ?, ?)
         """
-        return execute_insert(query, (name, password, fax_n, pager_n, avatar_url))
+        return execute_insert(query, (name, hashedpw, fax_n, pager_n, avatar_url))
 
     @staticmethod
     def get_by_id(student_id: int) -> Dict[str, Any] | None:
@@ -23,15 +25,25 @@ class Student:
         return results[0][0] if results else None
 
     @staticmethod
+    def verify_password(student_id: int, plain_password: str) -> bool:
+        query = "SELECT password FROM Student WHERE id = ?"
+        results = execute_query(query, (student_id,))
+        if not results:
+            return False
+        stored_hash = results[0][0]  # bytes
+        return bcrypt.checkpw(plain_password.encode(), stored_hash)
+
+    @staticmethod
     def get_all() -> List[Dict[str, Any]]:
         query = "SELECT * FROM Student ORDER BY name"
         results = execute_query(query, ())
         return [dict(row) for row in results]
 
     @staticmethod
-    def update(student_id: int, name: str, password: bytes, fax_n: str, pager_n: str, avatar_url: str) -> bool:
+    def update(student_id: int, name: str, password: str, fax_n: str, pager_n: str, avatar_url: str) -> bool:
+        hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
         query = "UPDATE Student SET name = ?, password = ?, fax_n = ?, pager_n = ?, avatar_url = ? WHERE id = ?"
-        return execute_update(query, (name, password, fax_n, pager_n, avatar_url, student_id)) > 0
+        return execute_update(query, (name, hashedpw, fax_n, pager_n, avatar_url, student_id)) > 0
 
     @staticmethod
     def delete(student_id: int) -> bool:

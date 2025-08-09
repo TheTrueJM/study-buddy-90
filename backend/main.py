@@ -9,6 +9,7 @@ from database.groups import Groups
 from database.assessments import Assessments
 from database.unit_enrolment import UnitEnrolment
 from database.group_requests import GroupRequests
+from database.group_member import GroupMember
 
 app = FastAPI(title="Study Buddy API")
 
@@ -41,7 +42,7 @@ def get_student(student_id: int):
 def create_student(body: StudentCreate):
     new_id = Student.create(
         name=body.name,
-        password=(body.password.encode() if isinstance(body.password, str) else body.password),
+        password=body.password,  
         fax_n=body.fax_n or "",
         pager_n=body.pager_n or "",
         avatar_url=body.avatar_url or "",
@@ -53,14 +54,14 @@ def update_student(student_id: int, body: StudentUpdate):
     ok = Student.update(
         student_id,
         body.name,
-        (body.password.encode() if isinstance(body.password, str) else body.password),
+        body.password,  
         body.fax_n or "",
         body.pager_n or "",
         body.avatar_url or "",
     )
     if not ok:
         raise HTTPException(404, "Student not found")
-    return {"ok": True}
+    return {"ok": True}@app.delete("/students/{student_id}", tags=["students"])
 
 @app.delete("/students/{student_id}", tags=["students"])
 def delete_student(student_id: int):
@@ -197,6 +198,47 @@ def delete_group(unit_code: str, num: int, id: int):
         raise HTTPException(404, "Group not found")
     return {"ok": True}
 
+class GroupMemberCreate(BaseModel):
+    group_id: int
+    student_id: int
+
+@app.get("/group-members", tags=["group_members"])
+def list_all_group_memberships():
+    return GroupMember.get_all_memberships()
+
+@app.get("/groups/{group_id}/members", tags=["group_members"])
+def members_in_group(group_id: int):
+    return GroupMember.get_group_members(group_id)
+
+@app.get("/students/{student_id}/groups", tags=["group_members"])
+def groups_for_student(student_id: int):
+    return GroupMember.get_student_groups(student_id)
+
+@app.post("/group-members", tags=["group_members"])
+def add_group_member(body: GroupMemberCreate):
+    if not GroupMember.add_member(body.group_id, body.student_id):
+        raise HTTPException(400, "Could not add member (may already exist)")
+    return {"ok": True}
+
+@app.delete("/groups/{group_id}/members/{student_id}", tags=["group_members"])
+def remove_group_member(group_id: int, student_id: int):
+    if not GroupMember.remove_member(group_id, student_id):
+        raise HTTPException(404, "Member not found in group")
+    return {"ok": True}
+
+@app.get("/groups/{group_id}/members/count", tags=["group_members"])
+def group_size(group_id: int):
+    return {"count": GroupMember.get_group_size(group_id)}
+
+@app.delete("/groups/{group_id}/members", tags=["group_members"])
+def remove_all_members(group_id: int):
+    removed_count = GroupMember.remove_all_members(group_id)
+    return {"removed": removed_count}
+
+@app.get("/units/{unit_code}/assessments/{num}/students-without-group", tags=["group_members"])
+def students_without_group(unit_code: str, num: int):
+    return GroupMember.get_students_without_group(unit_code, num)
+
 class EnrolCreate(BaseModel):
     unit_code: str
     student_id: int
@@ -253,29 +295,36 @@ class GroupRequestCreate(BaseModel):
     group_id: int
     student_id: int
 
-@app.get("/group-requests", tags=["group_requests"])
-def list_group_requests():
-    return GroupRequests.get_all_requests()
+@app.post("/group-requests", tags=["group_requests"])
+def create_group_request(body: GroupRequestCreate):
+    if GroupRequests.request_exists(body.group_id, body.student_id):
+        raise HTTPException(400, "Request already exists")
+    if not GroupRequests.create_request(body.group_id, body.student_id):
+        raise HTTPException(400, "Could not create request")
+    return {"ok": True}
 
 @app.get("/groups/{group_id}/requests", tags=["group_requests"])
 def requests_for_group(group_id: int):
     return GroupRequests.get_requests_for_group(group_id)
 
-@app.get("/students/{student_id}/group-requests", tags=["group_requests"])
-def requests_by_student(student_id: int):
-    return GroupRequests.get_requests_by_student(student_id)
-
-@app.post("/group-requests", tags=["group_requests"])
-def create_group_request(body: GroupRequestCreate):
-    if not GroupRequests.create_request(body.group_id, body.student_id):
-        raise HTTPException(400, "Request already exists?")
-    return {"ok": True}
-
-@app.delete("/group-requests/{group_id}/{student_id}", tags=["group_requests"])
-def delete_group_request(group_id: int, student_id: int):
-    if not GroupRequests.delete_request(group_id, student_id):
+@app.post("/group-requests/{group_id}/{student_id}/accept", tags=["group_requests"])
+def accept_group_request(group_id: int, student_id: int):
+    # Ensure request exists
+    if not GroupRequests.request_exists(group_id, student_id):
         raise HTTPException(404, "Request not found")
-    return {"ok": True}
+    # Add member to group
+    if not GroupMember.add_member(group_id, student_id):
+        raise HTTPException(400, "Could not add member to group (may already be in)")
+    # Remove the request
+    GroupRequests.delete_request(group_id, student_id)
+    return {"ok": True, "message": "Request accepted and member added"}
+
+@app.post("/group-requests/{group_id}/{student_id}/deny", tags=["group_requests"])
+def deny_group_request(group_id: int, student_id: int):
+    if not GroupRequests.request_exists(group_id, student_id):
+        raise HTTPException(404, "Request not found")
+    GroupRequests.delete_request(group_id, student_id)
+    return {"ok": True, "message": "Request denied and removed"}
 
 #database test
 @app.get("/test-db")
