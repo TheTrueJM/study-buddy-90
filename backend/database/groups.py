@@ -105,3 +105,16 @@ class Groups:
         query = "SELECT COUNT(*) FROM GroupMembers WHERE group_id = ?"
         results = execute_query(query, (id,))
         return results[0][0] if results else 0
+
+
+    @staticmethod
+    def student_already_in_group(unit_code: int, num: int, student_id: int) -> bool:
+        query = """
+            SELECT 1
+            FROM Groups g
+            JOIN GroupMembers gm ON g.id = gm.id
+            WHERE g.unit_code = ? AND g.num = ? AND gm.student_id = ?
+            LIMIT 1
+        """
+        results = execute_query(query, (unit_code, num, student_id))
+        return len(results) > 0

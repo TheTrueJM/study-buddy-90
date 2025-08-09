@@ -9,7 +9,7 @@ class Students:
     ) -> int:
         hashedpw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
         query = """
-            INSERT INTO Students (id, name, password, fax_n, pager_n, avatar_url)
+            INSERT INTO Students (id, name, password, fax_num, pager_num, avatar_url)
             VALUES (?, ?, ?, ?, ?, ?)
         """
         return execute_insert(query, (id, name, hashedpw, fax_num, pager_num, avatar_url))
@@ -30,7 +30,7 @@ class Students:
 
     @staticmethod
     def update(id: int, name: str, fax_n: str, pager_n: str, avatar_url: str) -> bool:
-        query = "UPDATE Students SET name = ?, fax_n = ?, pager_n = ?, avatar_url = ? WHERE id = ?"
+        query = "UPDATE Students SET name = ?, fax_num = ?, pager_num = ?, avatar_url = ? WHERE id = ?"
         return execute_update(query, (name, fax_n, pager_n, avatar_url, id)) > 0
 
     @staticmethod
@@ -40,17 +40,19 @@ class Students:
 
 
     @staticmethod
-    def verify_password(student_id: int, plain_password: str) -> bool:
+    def verify_credentials(id: int, plain_password: str) -> bool:
         query = "SELECT password FROM Students WHERE id = ?"
-        results = execute_query(query, (student_id,))
+        results = execute_query(query, (id,))
         if not results:
             return False
         stored_hash = results[0][0]  # bytes
+        # if isinstance(stored_hash, str):
+        #     stored_hash = stored_hash.encode()
         return bcrypt.checkpw(plain_password.encode(), stored_hash)
     
     @staticmethod
     def update_password(id: int, cur_password: str, new_password: str) -> bool:
-        if not Students.verify_password(cur_password):
+        if not Students.verify_credentials(id, cur_password):
             return False
         hashed_pw = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
         query = "UPDATE Students SET password = ? WHERE id = ?"
@@ -92,3 +94,26 @@ class Students:
     def delete_all_requests(id: int) -> int:
         query = "DELETE FROM group_requests WHERE student_id = ?"
         return execute_update(query, (id,))
+    
+
+    @staticmethod
+    def generate_contact_numbers(student_id: str):
+        """
+        Generate a unique pager and fax number based on a student ID.
+        The numbers follow a fixed prefix and embed the student ID digits.
+        """
+
+        student_id = ''.join(filter(str.isdigit, student_id))
+
+        while len(student_id) < 8:
+            student_id += student_id
+
+        digits = student_id[:8]
+
+        pager_prefix = "5"
+        fax_prefix = "5"
+
+        pager_num = f"{pager_prefix}{digits[0]}{digits[1]}-{digits[2]}{digits[3]}{digits[4]}-{digits[5]}{digits[6]}{digits[7]}{digits[0]}"
+        fax_num = f"({fax_prefix}{digits[0]}{digits[1]}) {digits[2]}{digits[3]}{digits[4]}-{digits[5]}{digits[6]}{digits[7]}{digits[0]}"
+
+        return pager_num, fax_num

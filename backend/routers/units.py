@@ -58,14 +58,14 @@ def create_unit(unit: UnitCreate):
 
 
 @router.put("/{code}/")
-def get_unit(code: str, unit_details: UnitUpdate):
+def update_unit(code: str, unit_details: UnitUpdate):
     unit = Units.update(code, unit_details.name, unit_details.description or "")
     if not unit:
         raise HTTPException(404, "Unit not found")
     return {"unit": unit}
 
 @router.delete("/{code}/")
-def create_unit(code: str):
+def delete_unit(code: str):
     if not Units.delete(code):
         raise HTTPException(404, "Unit not found")
     return None, 204
@@ -77,12 +77,12 @@ def search_units(query: str = Query(..., min_length=1)):
 
 
 @router.get("/{code}/enrolments/")
-def unit_students(unit_code: str):
+def list_unit_students(unit_code: str):
     return {"student enrolments": Enrolments.get_unit_students(unit_code)}
 
 
-@router.get("/{code}/assessments")
-def get_unit_assessment(code: str):
+@router.get("/{code}/assessments/")
+def list_assessments(code: str):
     unit_assessments = Assessments.get_by_unit(code)
     if not unit_assessments:
         raise HTTPException(404, "Assessments not found")
@@ -119,11 +119,11 @@ def delete_assessment(unit_code: str, num: int):
 
 
 @router.get("/{code}/assessments/{num}/groups/")
-def list_groups():
+def list_assessment_groups():
     return {"Groups": Groups.get_all()}
 
 @router.post("/{code}/assessments/{num}/groups/")
-def create_group(code: int, num: int, group: GroupCreate):
+def create_assessment_group(code: int, num: int, group: GroupCreate):
     new_group = Groups.create(code, num, group.name)
     if not new_group:
         raise HTTPException(400, "Group already exists")
