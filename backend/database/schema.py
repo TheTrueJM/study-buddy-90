@@ -76,6 +76,22 @@ def create_tables():
             )
         """)
 
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sender_id INTEGER NOT NULL,
+                recipient_id INTEGER NOT NULL,
+                body TEXT NOT NULL,
+                created_at INTEGER NOT NULL,          -- unix epoch seconds
+                read INTEGER NOT NULL DEFAULT 0,      -- 0/1
+                CHECK (length(body) <= 160),
+                FOREIGN KEY (sender_id) REFERENCES Student (id),
+                FOREIGN KEY (recipient_id) REFERENCES Student (id)
+            )
+        """)
+
+
+
 def init_database():
     create_tables()
     print("Database initialized successfully.")
