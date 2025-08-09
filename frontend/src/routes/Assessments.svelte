@@ -1,35 +1,60 @@
-<!-- Mock-only UI. If connected to backend, replace local arrays with fetches to load groups and units, and POST the create action. -->
 <script>
+  import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
+  import { fetchGroups, fetchUnits } from "../js/api.js";
 
-  let units = [{ code: "CAB302" }, { code: "CAB201" }, { code: "IFB295" }];
-
-  let groups = [
-    { id: "G-101", unit_code: "CAB302", num: 1, members: 3, max: 5 },
-    { id: "G-214", unit_code: "CAB201", num: 2, members: 2, max: 4 },
-    { id: "G-377", unit_code: "IFB295", num: 1, members: 4, max: 6 },
-  ];
+  let units = [];
+  let groups = [];
+  let loading = true;
 
   let showCreate = false;
-  let createForm = { unit_code: units[0].code, num: 1 };
+  let createForm = { unit_code: "", num: 1 };
   let toast = "";
 
-  function createGroup() {
+  onMount(async () => {
+    await loadData();
+  });
+
+  async function loadData() {
+    try {
+      loading = true;
+      [units, groups] = await Promise.all([fetchUnits(), fetchGroups()]);
+      if (units.length > 0) {
+        createForm.unit_code = units[0].code;
+      }
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function createGroup() {
     if (!createForm.unit_code || createForm.num < 1) return;
-    const newId = `G-${Math.floor(100 + Math.random() * 900)}`;
-    groups = [
-      ...groups,
-      {
-        id: newId,
-        unit_code: createForm.unit_code,
-        num: createForm.num,
-        members: 1,
-        max: 5,
-      },
-    ];
-    toast = "Group created";
-    showCreate = false;
-    setTimeout(() => (toast = ""), 1500);
+    
+    try {
+      const response = await fetch("http://localhost:8000/groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unit_code: createForm.unit_code,
+          num: createForm.num,
+        }),
+      });
+      
+      if (response.ok) {
+        toast = "Group created";
+        await loadData();
+        showCreate = false;
+        setTimeout(() => (toast = ""), 1500);
+      } else {
+        toast = "Failed to create group";
+        setTimeout(() => (toast = ""), 1500);
+      }
+    } catch (error) {
+      toast = "Error creating group";
+      setTimeout(() => (toast = ""), 1500);
+    }
   }
 </script>
 
@@ -88,13 +113,14 @@
         </div>
       {/if}
 
-      {#if groups.length}
+      {#if loading}
+        <p style="text-align:center; opacity:0.7; padding:2rem;">Loading groups...</p>
+      {:else if groups.length}
         <ul style="padding-left:1rem;">
           {#each groups as g}
             <li class="field-row" style="justify-content:space-between;">
               <div>
-                <strong>{g.id}</strong> — {g.unit_code} — Assessment {g.num}
-                <span style="opacity:.7;">({g.members}/{g.max})</span>
+                <strong>Group {g.id}</strong> — {g.unit_code} — Assessment {g.num}
               </div>
               <div class="field-row" style="gap:6px;">
                 <button on:click={() => push(`/group/${g.id}`)}>View</button>
