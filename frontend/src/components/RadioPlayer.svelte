@@ -65,6 +65,7 @@
 </script>
 
 <div class="radio inline">
+  NOW PLAYING
   <div class="row">
     <select
       class="field"
