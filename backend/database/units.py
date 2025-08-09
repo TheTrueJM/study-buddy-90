@@ -14,6 +14,7 @@ class Units:
         except:
             return False
     
+
     @staticmethod
     def get_by_code(code: str) -> Dict[str, Any] | None:
         query = "SELECT * FROM Units WHERE code = ?"
@@ -26,6 +27,7 @@ class Units:
         results = execute_query(query, ())
         return [dict(row) for row in results]
     
+
     @staticmethod
     def update(code: str, name: str, description: str) -> bool:
         query = "UPDATE Units SET name = ?, description = ? WHERE code = ?"
@@ -35,6 +37,7 @@ class Units:
     def delete(code: str) -> bool:
         query = "DELETE FROM Units WHERE code = ?"
         return execute_update(query, (code,)) > 0
+    
     
     @staticmethod
     def search_by_name(name_pattern: str) -> List[Dict[str, Any]]:

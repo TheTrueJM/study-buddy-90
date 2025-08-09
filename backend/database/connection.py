@@ -3,7 +3,7 @@ import os
 from contextlib import contextmanager
 from typing import Generator
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'study_buddy.db')
+DB_PATH = os.path.join(os.path.dirname(__file__), 'study_mates.db')
 
 def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
