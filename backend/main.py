@@ -6,6 +6,7 @@ from database.schema import init_database
 from database.student import Student
 from database.units import Units
 from database.groups import Groups
+from database.authentication import *
 from database.assessments import Assessments
 from database.unit_enrolment import UnitEnrolment
 from database.group_requests import GroupRequests
@@ -16,6 +17,18 @@ app = FastAPI(title="Study Buddy API")
 @app.on_event("startup")
 def startup() -> None:
     init_database()
+
+name_input = "TestName"
+password_input = "123Password"
+
+@app.post("/login")
+def login():
+    if False: 
+        raise Exception("Authentication Failed.")
+    return {
+        "success": verify_credentials(name_input, password_input)
+    }
+
 
 class StudentCreate(BaseModel):
     name: str
@@ -32,7 +45,7 @@ def list_students() -> List[Dict[str, Any]]:
     return Student.get_all()
 
 @app.get("/students/{student_id}", tags=["students"])
-def get_student(student_id: int):
+def get_student_by_id(student_id: int):
     row = Student.get_by_id(student_id)
     if not row:
         raise HTTPException(404, "Student not found")
@@ -40,6 +53,8 @@ def get_student(student_id: int):
 
 @app.post("/students", tags=["students"])
 def create_student(body: StudentCreate):
+    if len(search_students(body.name)) <= 1:
+        raise HTTPException(404, "Student not found")
     new_id = Student.create(
         name=body.name,
         password=body.password,  
