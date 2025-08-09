@@ -76,6 +76,20 @@ def create_tables():
             )
         """)
 
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS team_posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id INTEGER NOT NULL,
+                unit_code TEXT NOT NULL,
+                looking_for_team BOOLEAN DEFAULT TRUE,
+                open_to_messages BOOLEAN DEFAULT TRUE,
+                note TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (student_id) REFERENCES Student (id),
+                FOREIGN KEY (unit_code) REFERENCES Units (code)
+            )
+        """)
+
 def init_database():
     create_tables()
     print("Database initialized successfully.")

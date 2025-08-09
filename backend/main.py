@@ -1,15 +1,32 @@
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
 from database.schema import init_database
 from database.student import Student
 from database.units import Units
+from database.assessments import Assessments
 from database.groups import Groups
 from database.unit_enrolment import UnitEnrolment
 from database.group_requests import GroupRequests
+from database.team_posts import TeamPosts
 
 app = FastAPI(title="Study Buddy API")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5174",  # Vite dev server default port
+        "http://localhost:3000",  # Common React dev server port
+        "http://127.0.0.1:5174",  # Alternative localhost
+        "http://127.0.0.1:3000",  # Alternative localhost
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup() -> None:
@@ -112,6 +129,53 @@ def delete_unit(code: str):
 @app.get("/units:search", tags=["units"])
 def search_units(q: str = Query(..., min_length=1)):
     return Units.search_by_name(q)
+
+class AssessmentCreate(BaseModel):
+    unit_code: str
+    num: int
+    size: int
+    due_week: int
+    grade: float
+    group_formation_week: Optional[int] = None
+
+class AssessmentUpdate(BaseModel):
+    size: int
+    due_week: int
+    grade: float
+    group_formation_week: Optional[int] = None
+
+@app.get("/assessments", tags=["assessments"])
+def list_assessments():
+    return Assessments.get_all()
+
+@app.get("/units/{unit_code}/assessments", tags=["assessments"])
+def list_unit_assessments(unit_code: str):
+    return Assessments.get_by_unit(unit_code)
+
+@app.get("/units/{unit_code}/assessments/{num}", tags=["assessments"])
+def get_assessment(unit_code: str, num: int):
+    row = Assessments.get_by_key(unit_code, num)
+    if not row:
+        raise HTTPException(404, "Assessment not found")
+    return row
+
+@app.post("/assessments", tags=["assessments"])
+def create_assessment(body: AssessmentCreate):
+    if not Assessments.create(body.unit_code, body.num, body.size, body.due_week, body.grade, body.group_formation_week):
+        raise HTTPException(400, "Assessment already exists")
+    return {"ok": True}
+
+@app.put("/units/{unit_code}/assessments/{num}", tags=["assessments"])
+def update_assessment(unit_code: str, num: int, body: AssessmentUpdate):
+    if not Assessments.update(unit_code, num, body.size, body.due_week, body.grade, body.group_formation_week):
+        raise HTTPException(404, "Assessment not found")
+    return {"ok": True}
+
+@app.delete("/units/{unit_code}/assessments/{num}", tags=["assessments"])
+def delete_assessment(unit_code: str, num: int):
+    if not Assessments.delete(unit_code, num):
+        raise HTTPException(404, "Assessment not found")
+    return {"ok": True}
 
 class GroupCreate(BaseModel):
     unit_code: str
@@ -217,6 +281,40 @@ def create_group_request(body: GroupRequestCreate):
 def delete_group_request(group_id: int, student_id: int):
     if not GroupRequests.delete_request(group_id, student_id):
         raise HTTPException(404, "Request not found") 
+    return {"ok": True}
+
+class TeamPostCreate(BaseModel):
+    student_id: int
+    unit_code: str
+    looking_for_team: bool = True
+    open_to_messages: bool = True
+    note: str = ""
+
+@app.get("/team-posts", tags=["team_posts"])
+def list_team_posts():
+    return TeamPosts.get_all_posts()
+
+@app.get("/team-posts/looking-for-team", tags=["team_posts"])
+def list_looking_for_team():
+    return TeamPosts.get_looking_for_team_posts()
+
+@app.post("/team-posts", tags=["team_posts"])
+def create_team_post(body: TeamPostCreate):
+    post_id = TeamPosts.create_post(
+        body.student_id,
+        body.unit_code,
+        body.looking_for_team,
+        body.open_to_messages,
+        body.note
+    )
+    if post_id == 0:
+        raise HTTPException(400, "Failed to create post")
+    return {"id": post_id}
+
+@app.delete("/team-posts/{post_id}", tags=["team_posts"])
+def delete_team_post(post_id: int):
+    if not TeamPosts.delete_post(post_id):
+        raise HTTPException(404, "Post not found")
     return {"ok": True}
 
 #database test
