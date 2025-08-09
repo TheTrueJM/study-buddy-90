@@ -115,62 +115,54 @@ def delete_unit(code: str):
 def search_units(q: str = Query(..., min_length=1)):
     return Units.search_by_name(q)
 
-class Create_Assessment(BaseModel):
+class AssessmentCreate(BaseModel):
     unit_code: str
     num: int
-    size: int
-    due_week: int
-    grade: float
-    group_formation_week: int
+    size: Optional[int] = None
+    due_week: Optional[int] = None
+    grade: Optional[float] = None
+    group_formation_week: Optional[int] = None
 
-class Update_Assessment(BaseModel):
-    unit_code: str
-    num: int
-    size: int
-    due_week: int
-    grade: float
-    group_formation_week: int
-
-class Delete_Assessment(BaseModel):
-    unit_code: str
-    num: int
-    size: int
-    due_week: int
-    grade: float
-    group_formation_week: int
+class AssessmentUpdate(BaseModel):
+    size: Optional[int] = None
+    due_week: Optional[int] = None
+    grade: Optional[float] = None
+    group_formation_week: Optional[int] = None
 
 @app.get("/assessments", tags=["assessments"])
 def list_assessments():
     return Assessments.get_all()
 
 @app.get("/assessments/{code}", tags=["assessments"])
-def get_assessment(code: str):
-    row = Assessments.get_by_code(code)
+def get_assessment(unit_code: str):
+    row = Assessments.get_by_unit(unit_code)
     if not row:
         raise HTTPException(404, "Assessment not found")
     return row
 
 @app.post("/assessments", tags=["assessments"])
-def create_unit(body: Create_Assessment):
-    if not Assessments.create(body.code, body.name, body.description or ""):
+def create_assessment(body: AssessmentCreate):
+    ok = AssessmentCreate(
+        body.unit_code, body.num, body.size, body.due_week, body.grade, body.group_formation_week
+    )
+    if not ok:
         raise HTTPException(400, "Assessment already exists")
     return {"ok": True}
 
 @app.put("/assessments/{code}", tags=["assessments"])
-def update_unit(code: str, body: Update_Assessment):
-    if not Assessments.update(code, body.name, body.description or ""):
-        raise HTTPException(404, "Assessment not found")
+def update_assessment(unit_code: str, num: int, body: AssessmentUpdate):
+    ok = AssessmentCreate(
+        body.unit_code, body.num, body.size, body.due_week, body.grade, body.group_formation_week
+    )
+    if not ok:
+        raise HTTPException(404, "Assessment not found.")
     return {"ok": True}
 
 @app.delete("/assessments/{code}", tags=["assessments"])
-def delete_unit(code: str):
-    if not Assessments.delete(code):
+def delete_assessment(unit_code: str, num: int):
+    if not Assessments.delete(unit_code, num):
         raise HTTPException(404, "Assessment not found")
     return {"ok": True}
-
-@app.get("/assessments:search", tags=["assessments"])
-def search_units(q: str = Query(..., min_length=1)):
-    return Assessments.search_by_name(q)
 
 class GroupCreate(BaseModel):
     unit_code: str
