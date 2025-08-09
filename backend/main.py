@@ -61,7 +61,7 @@ def update_student(student_id: int, body: StudentUpdate):
     )
     if not ok:
         raise HTTPException(404, "Student not found")
-    return {"ok": True}@app.delete("/students/{student_id}", tags=["students"])
+    return {"ok": True}
 
 @app.delete("/students/{student_id}", tags=["students"])
 def delete_student(student_id: int):
