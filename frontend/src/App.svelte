@@ -14,10 +14,9 @@
   import CornerGif from "./components/CornerGif.svelte";
   import SiteButtons from "./components/SiteButtons.svelte";
   import RadioPlayer from "./components/RadioPlayer.svelte";
-  import { onMount } from 'svelte';
+  import { onMount } from "svelte";
 
   import { ensureUser } from "./js/User.js";
-  
 
   const routes = {
     "/": Units,
@@ -31,25 +30,27 @@
   };
 
   // Auto-login to the first user on app start
-  onMount(() => { ensureUser(); });
+  onMount(() => {
+    ensureUser();
+  });
 
   let radioTop = 180;
   function positionRadio() {
-    const el = document.querySelector('#nav-root .window');
+    const el = document.querySelector("#nav-root .window");
     const rect = el ? el.getBoundingClientRect() : null;
     radioTop = rect ? rect.bottom + 8 : 180;
   }
   onMount(() => {
     positionRadio();
-    const el = document.querySelector('#nav-root .window');
+    const el = document.querySelector("#nav-root .window");
     let ro;
     if (window.ResizeObserver) {
       ro = new ResizeObserver(positionRadio);
       if (el) ro.observe(el);
     }
-    window.addEventListener('resize', positionRadio);
+    window.addEventListener("resize", positionRadio);
     return () => {
-      window.removeEventListener('resize', positionRadio);
+      window.removeEventListener("resize", positionRadio);
       if (ro) ro.disconnect();
     };
   });
@@ -58,11 +59,15 @@
 <main>
   <div class="retro-banner" aria-hidden="true">
     <marquee behavior="scroll" direction="left" scrollamount="5">
-      Welcome to Study Buddy 2000! Best viewed at 1024×768 in Netscape Navigator · SIGN UP NOW!!!
+      Welcome to Study Mates 2000! Best viewed at 1024×768 in Netscape Navigator
+      · SIGN UP NOW!!!
     </marquee>
   </div>
   <Navbar></Navbar>
-  <div style="position:fixed; left:8px; z-index:990; width:260px;" style:top={`${radioTop}px`}>
+  <div
+    style="position:fixed; left:8px; z-index:990; width:260px;"
+    style:top={`${radioTop}px`}
+  >
     <RadioPlayer />
   </div>
 

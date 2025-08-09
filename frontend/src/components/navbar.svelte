@@ -19,7 +19,7 @@
   <div class="window nav-window" style="width:320px">
     <div class="title-bar">
       <button aria-label="Close" class="close"></button>
-      <h1 class="title">Study Buddy</h1>
+      <h1 class="title">Study Mates</h1>
       <button aria-label="Resize" class="resize"></button>
     </div>
     <div class="separator"></div>
