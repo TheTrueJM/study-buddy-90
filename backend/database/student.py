@@ -43,7 +43,7 @@ class Student:
     def update(student_id: int, name: str, password: str, fax_n: str, pager_n: str, avatar_url: str) -> bool:
         hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
         query = "UPDATE Student SET name = ?, password = ?, fax_n = ?, pager_n = ?, avatar_url = ? WHERE id = ?"
-        return execute_update(query, (name, hashedpw, fax_n, pager_n, avatar_url, student_id)) > 0
+        return execute_update(query, (name, hashed_pw, fax_n, pager_n, avatar_url, student_id)) > 0
 
     @staticmethod
     def delete(student_id: int) -> bool:

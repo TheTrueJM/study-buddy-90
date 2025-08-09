@@ -1,15 +1,21 @@
 <script>
   import { push } from "svelte-spa-router";
   import { onMount } from 'svelte';
-  import { userId } from '../js/User.js';
+  import { getUserId } from '../js/User.js';
 
   let myUnits = [];
   let loading = true;
   let error = null;
 
   onMount(async () => {
+    const uid = getUserId();
+    if (!uid) {
+      loading = false;
+      error = 'You are not logged in.';
+      return;
+    }
     try {
-      const response = await fetch(`http://localhost:8000/students/${userId}/enrolments`);
+      const response = await fetch(`http://localhost:8000/students/${uid}/enrolments`);
       if (!response.ok) throw new Error('Failed to fetch enrolled units');
       const enrolments = await response.json();
       

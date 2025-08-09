@@ -3,7 +3,7 @@
   import { push } from "svelte-spa-router";
   import { params } from "svelte-spa-router";
   import { fetchUnitAssessments } from '../js/api.js';
-  import { userId } from '../js/User.js';
+  import { getUserId } from '../js/User.js';
 
   // Read unit code from route (with fallback)
   let code = "";
@@ -23,8 +23,10 @@
   };
 
   async function savePrefs() {
+    const uid = getUserId();
+    if (!uid) return;
     try {
-      const response = await fetch(`http://localhost:8000/enrolments/${code}/${userId}`, {
+      const response = await fetch(`http://localhost:8000/enrolments/${code}/${uid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +77,9 @@
 
       // Fetch current user's enrollment to get preferences
       try {
-        const enrolmentResponse = await fetch(`http://localhost:8000/students/${userId}/enrolments`);
+        const uid = getUserId();
+        if (!uid) throw new Error('No user');
+        const enrolmentResponse = await fetch(`http://localhost:8000/students/${uid}/enrolments`);
         if (enrolmentResponse.ok) {
           const enrolments = await enrolmentResponse.json();
           const currentEnrolment = enrolments.find(e => e.unit_code === code);

@@ -20,8 +20,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5174",  # Vite dev server default port
+        
         "http://localhost:3000",  # Common React dev server port
         "http://127.0.0.1:5174",  # Alternative localhost
+        
         "http://127.0.0.1:3000",  # Alternative localhost
     ],
     allow_credentials=True,
@@ -318,12 +320,42 @@ def delete_team_post(post_id: int):
         raise HTTPException(404, "Post not found")
     return {"ok": True}
 
-class authParams(BaseModel):
-   pass
+class AuthParams(BaseModel):
+    username: str
+    password: str
 
 @app.post("/auth", tags=["auth"])
-def auth(body: authParams):
-    return {"ok": True}
+def auth(body: AuthParams):
+    """Authenticate user with username and password"""
+    try:
+        is_valid = verify_credentials(body.username, body.password)
+        if is_valid:
+            # Get student details for successful login
+            from database.connection import execute_query
+            rows = execute_query(
+                "SELECT id, name, fax_n, pager_n, avatar_url FROM Student WHERE name = ? LIMIT 1",
+                (body.username,)
+            )
+            if rows:
+                student = rows[0]
+                return {
+                    "success": True,
+                    "message": "Login successful",
+                    "student": {
+                        "id": student["id"],
+                        "name": student["name"],
+                        "fax_n": student["fax_n"],
+                        "pager_n": student["pager_n"],
+                        "avatar_url": student["avatar_url"]
+                    }
+                }
+        
+        return {
+            "success": False,
+            "message": "Invalid username or password"
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Authentication error: {e}")
 
 #database test
 @app.get("/test-db")
