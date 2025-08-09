@@ -25,7 +25,7 @@ class GroupRequests:
         query = """
             SELECT gr.*, s.name, s.fax_n, s.pager_n, s.avatar_url
             FROM group_requests gr
-            JOIN Student s ON gr.student_id = s.id
+            JOIN Student s ON gr.student_id = s.student_id
             WHERE gr.group_id = ?
             ORDER BY s.name
         """
@@ -71,7 +71,7 @@ class GroupRequests:
             SELECT gr.*, s.name as student_name, 
                    g.unit_code, g.num as assessment_num, g.id as group_number
             FROM group_requests gr
-            JOIN Student s ON gr.student_id = s.id
+            JOIN Student s ON gr.student_id = s.student_id
             JOIN groups g ON gr.group_id = g.id
             ORDER BY g.unit_code, g.num, g.id, s.name
         """
@@ -84,7 +84,7 @@ class GroupRequests:
             SELECT gr.*, s.name as student_name, 
                    g.num as assessment_num, g.id as group_number
             FROM group_requests gr
-            JOIN Student s ON gr.student_id = s.id
+            JOIN Student s ON gr.student_id = s.student_id
             JOIN groups g ON gr.group_id = g.id
             WHERE g.unit_code = ?
             ORDER BY g.num, g.id, s.name
@@ -97,7 +97,7 @@ class GroupRequests:
         query = """
             SELECT gr.*, s.name as student_name, g.id as group_number
             FROM group_requests gr
-            JOIN Student s ON gr.student_id = s.id
+            JOIN Student s ON gr.student_id = s.student_id
             JOIN groups g ON gr.group_id = g.id
             WHERE g.unit_code = ? AND g.num = ?
             ORDER BY g.id, s.name
