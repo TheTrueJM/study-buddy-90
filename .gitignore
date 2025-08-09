@@ -27,3 +27,6 @@ vite.config.ts.timestamp-*
 __pycache__/
 .ropeproject/
 *.db
+
+CLAUDE.md
+instructions.md
