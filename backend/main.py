@@ -1,68 +1,41 @@
 from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel, Field
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
 from database.schema import init_database
 from database.student import Student
 from database.units import Units
-from database.groups import Groups
-from database.authentication import *
 from database.assessments import Assessments
+from database.groups import Groups
 from database.unit_enrolment import UnitEnrolment
 from database.group_requests import GroupRequests
-from database.group_member import GroupMember
-from database.pager_and_fax import generate_contact_numbers
-from database.messages import Messages
+from database.team_posts import TeamPosts
+from database.authentication import verify_credentials
+from database.connection import execute_query, execute_update, execute_insert
 
 app = FastAPI(title="Study Buddy API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5174",
+        "http://localhost:3000",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup() -> None:
     init_database()
 
-name_input = "owentest"
-password_input = "owentest1234"
-
-@app.post("/login")
-def login():
-    if False: 
-        raise Exception("Authentication Failed.")
-    return {
-        "success": verify_credentials(name_input, password_input)
-    }
-
-class SignUpBody(BaseModel):
-    student_id: int
-    name: str
-    password: str
-    avatar_url: Optional[str] = ""
-
-@app.post("/auth/signup", tags=["auth"])
-def signup(body: SignUpBody):
-    if not hasattr(Student, "exists_by_id") or not hasattr(Student, "create_with_id"):
-        raise HTTPException(status_code=500, detail="Student helper methods missing (exists_by_id/create_with_id)")
-    if Student.exists_by_id(body.student_id):
-        raise HTTPException(status_code=409, detail="Student ID already exists")
-
-    pager_n, fax_n = generate_contact_numbers(str(body.student_id))
-
-    new_id = Student.create_with_id(
-        student_id=body.student_id,
-        name=body.name,
-        password=body.password,
-        fax_n=fax_n,
-        pager_n=pager_n,
-        avatar_url=body.avatar_url or ""
-    )
-
-    row = Student.get_by_id(new_id)
-    if row and "password" in row:
-        del row["password"]
-    return {"ok": True, "student": row}
-
 class StudentCreate(BaseModel):
     name: str
-    password: str  
+    password: str
     fax_n: Optional[str] = ""
     pager_n: Optional[str] = ""
     avatar_url: Optional[str] = ""
@@ -78,15 +51,14 @@ def list_students() -> List[Dict[str, Any]]:
 def get_student(student_id: int):
     row = Student.get_by_id(student_id)
     if not row:
-        raise HTTPException(status_code=404, detail="Student not found")
-    row.pop("password", None)
+        raise HTTPException(404, "Student not found")
     return row
 
 @app.post("/students", tags=["students"])
 def create_student(body: StudentCreate):
     new_id = Student.create(
         name=body.name,
-        password=body.password,  
+        password=body.password,
         fax_n=body.fax_n or "",
         pager_n=body.pager_n or "",
         avatar_url=body.avatar_url or "",
@@ -98,7 +70,7 @@ def update_student(student_id: int, body: StudentUpdate):
     ok = Student.update(
         student_id,
         body.name,
-        body.password,  
+        body.password,
         body.fax_n or "",
         body.pager_n or "",
         body.avatar_url or "",
@@ -162,47 +134,45 @@ def search_units(q: str = Query(..., min_length=1)):
 class AssessmentCreate(BaseModel):
     unit_code: str
     num: int
-    size: Optional[int] = None
-    due_week: Optional[int] = None
-    grade: Optional[float] = None
+    size: int
+    due_week: int
+    grade: float
     group_formation_week: Optional[int] = None
 
 class AssessmentUpdate(BaseModel):
-    size: Optional[int] = None
-    due_week: Optional[int] = None
-    grade: Optional[float] = None
+    size: int
+    due_week: int
+    grade: float
     group_formation_week: Optional[int] = None
 
 @app.get("/assessments", tags=["assessments"])
 def list_assessments():
     return Assessments.get_all()
 
-@app.get("/assessments/{code}", tags=["assessments"])
-def get_assessment(unit_code: str):
-    row = Assessments.get_by_unit(unit_code)
+@app.get("/units/{unit_code}/assessments", tags=["assessments"])
+def list_unit_assessments(unit_code: str):
+    return Assessments.get_by_unit(unit_code)
+
+@app.get("/units/{unit_code}/assessments/{num}", tags=["assessments"])
+def get_assessment(unit_code: str, num: int):
+    row = Assessments.get_by_key(unit_code, num)
     if not row:
         raise HTTPException(404, "Assessment not found")
     return row
 
 @app.post("/assessments", tags=["assessments"])
 def create_assessment(body: AssessmentCreate):
-    ok = AssessmentCreate(
-        body.unit_code, body.num, body.size, body.due_week, body.grade, body.group_formation_week
-    )
-    if not ok:
+    if not Assessments.create(body.unit_code, body.num, body.size, body.due_week, body.grade, body.group_formation_week):
         raise HTTPException(400, "Assessment already exists")
     return {"ok": True}
 
-@app.put("/assessments/{code}", tags=["assessments"])
+@app.put("/units/{unit_code}/assessments/{num}", tags=["assessments"])
 def update_assessment(unit_code: str, num: int, body: AssessmentUpdate):
-    ok = AssessmentCreate(
-        body.unit_code, body.num, body.size, body.due_week, body.grade, body.group_formation_week
-    )
-    if not ok:
-        raise HTTPException(404, "Assessment not found.")
+    if not Assessments.update(unit_code, num, body.size, body.due_week, body.grade, body.group_formation_week):
+        raise HTTPException(404, "Assessment not found")
     return {"ok": True}
 
-@app.delete("/assessments/{code}", tags=["assessments"])
+@app.delete("/units/{unit_code}/assessments/{num}", tags=["assessments"])
 def delete_assessment(unit_code: str, num: int):
     if not Assessments.delete(unit_code, num):
         raise HTTPException(404, "Assessment not found")
@@ -221,59 +191,39 @@ def list_groups():
 def list_groups_for_assessment(unit_code: str, num: int):
     return Groups.get_by_assessment(unit_code, num)
 
+class NewGroupCreate(BaseModel):
+    name: Optional[str] = None
+
+@app.post("/units/{unit_code}/assessments/{num}/groups", tags=["groups"])
+def create_group_for_assessment(unit_code: str, num: int, body: NewGroupCreate):
+    # default group name if not provided
+    name = body.name or None
+    if not name:
+        # auto-generate like "Group {count+1}"
+        row = execute_query("SELECT COUNT(1) AS cnt FROM Groups WHERE unit_code = ? AND num = ?", (unit_code, num))
+        cnt = int(row[0][0]) if row else 0
+        name = f"Group {cnt + 1}"
+    new_id = Groups.create(unit_code, num, name)
+    if new_id <= 0:
+        raise HTTPException(400, "Failed to create group")
+    return {"id": new_id, "unit_code": unit_code, "num": num, "name": name}
+
 @app.post("/groups", tags=["groups"])
 def create_group(body: GroupCreate):
-    next_id = Groups.get_next_group_id(body.unit_code, body.num)
-    if not Groups.create(body.unit_code, body.num, next_id):
-        raise HTTPException(400, "Group already exists")
-    return {"unit_code": body.unit_code, "num": body.num, "id": next_id}
+    # Backward-compatible endpoint: create group with autogenerated name
+    row = execute_query("SELECT COUNT(1) AS cnt FROM Groups WHERE unit_code = ? AND num = ?", (body.unit_code, body.num))
+    cnt = int(row[0][0]) if row else 0
+    name = f"Group {cnt + 1}"
+    new_id = Groups.create(body.unit_code, body.num, name)
+    if new_id <= 0:
+        raise HTTPException(400, "Failed to create group")
+    return {"unit_code": body.unit_code, "num": body.num, "id": new_id, "name": name}
 
 @app.delete("/groups/{unit_code}/{num}/{id}", tags=["groups"])
 def delete_group(unit_code: str, num: int, id: int):
     if not Groups.delete(unit_code, num, id):
         raise HTTPException(404, "Group not found")
     return {"ok": True}
-
-class GroupMemberCreate(BaseModel):
-    group_id: int
-    student_id: int
-
-@app.get("/group-members", tags=["group_members"])
-def list_all_group_memberships():
-    return GroupMember.get_all_memberships()
-
-@app.get("/groups/{group_id}/members", tags=["group_members"])
-def members_in_group(group_id: int):
-    return GroupMember.get_group_members(group_id)
-
-@app.get("/students/{student_id}/groups", tags=["group_members"])
-def groups_for_student(student_id: int):
-    return GroupMember.get_student_groups(student_id)
-
-@app.post("/group-members", tags=["group_members"])
-def add_group_member(body: GroupMemberCreate):
-    if not GroupMember.add_member(body.group_id, body.student_id):
-        raise HTTPException(400, "Could not add member (may already exist)")
-    return {"ok": True}
-
-@app.delete("/groups/{group_id}/members/{student_id}", tags=["group_members"])
-def remove_group_member(group_id: int, student_id: int):
-    if not GroupMember.remove_member(group_id, student_id):
-        raise HTTPException(404, "Member not found in group")
-    return {"ok": True}
-
-@app.get("/groups/{group_id}/members/count", tags=["group_members"])
-def group_size(group_id: int):
-    return {"count": GroupMember.get_group_size(group_id)}
-
-@app.delete("/groups/{group_id}/members", tags=["group_members"])
-def remove_all_members(group_id: int):
-    removed_count = GroupMember.remove_all_members(group_id)
-    return {"removed": removed_count}
-
-@app.get("/units/{unit_code}/assessments/{num}/students-without-group", tags=["group_members"])
-def students_without_group(unit_code: str, num: int):
-    return GroupMember.get_students_without_group(unit_code, num)
 
 class EnrolCreate(BaseModel):
     unit_code: str
@@ -331,82 +281,98 @@ class GroupRequestCreate(BaseModel):
     group_id: int
     student_id: int
 
-@app.post("/group-requests", tags=["group_requests"])
-def create_group_request(body: GroupRequestCreate):
-    if GroupRequests.request_exists(body.group_id, body.student_id):
-        raise HTTPException(400, "Request already exists")
-    if not GroupRequests.create_request(body.group_id, body.student_id):
-        raise HTTPException(400, "Could not create request")
-    return {"ok": True}
+@app.get("/group-requests", tags=["group_requests"])
+def list_group_requests():
+    return GroupRequests.get_all_requests()
 
 @app.get("/groups/{group_id}/requests", tags=["group_requests"])
 def requests_for_group(group_id: int):
     return GroupRequests.get_requests_for_group(group_id)
 
-@app.post("/group-requests/{group_id}/{student_id}/accept", tags=["group_requests"])
-def accept_group_request(group_id: int, student_id: int):
-    if not GroupRequests.request_exists(group_id, student_id):
+@app.get("/students/{student_id}/group-requests", tags=["group_requests"])
+def requests_by_student(student_id: int):
+    return GroupRequests.get_requests_by_student(student_id)
+
+@app.post("/group-requests", tags=["group_requests"])
+def create_group_request(body: GroupRequestCreate):
+    if not GroupRequests.create_request(body.group_id, body.student_id):
+        raise HTTPException(400, "Request already exists?")
+    return {"ok": True}
+
+@app.delete("/group-requests/{group_id}/{student_id}", tags=["group_requests"])
+def delete_group_request(group_id: int, student_id: int):
+    if not GroupRequests.delete_request(group_id, student_id):
         raise HTTPException(404, "Request not found")
-    if not GroupMember.add_member(group_id, student_id):
-        raise HTTPException(400, "Could not add member to group (may already be in)")
-    GroupRequests.delete_request(group_id, student_id)
-    return {"ok": True, "message": "Request accepted and member added"}
+    return {"ok": True}
 
-@app.post("/group-requests/{group_id}/{student_id}/deny", tags=["group_requests"])
-def deny_group_request(group_id: int, student_id: int):
-    if not GroupRequests.request_exists(group_id, student_id):
-        raise HTTPException(404, "Request not found")
-    GroupRequests.delete_request(group_id, student_id)
-    return {"ok": True, "message": "Request denied and removed"}
+class TeamPostCreate(BaseModel):
+    student_id: int
+    unit_code: str
+    looking_for_team: bool = True
+    open_to_messages: bool = True
+    note: str = ""
 
-class SendMessageBody(BaseModel):
-    sender_id: int
-    recipient_pager: str
-    body: str = Field(..., max_length=160)
+@app.get("/team-posts", tags=["team_posts"])
+def list_team_posts():
+    return TeamPosts.get_all_posts()
 
-@app.post("/messages", tags=["messages"])
-def send_message(body: SendMessageBody):
-    recipient = Student.get_by_pager(body.recipient_pager)
-    if not recipient:
-        raise HTTPException(status_code=404, detail="Recipient pager not found")
+@app.get("/team-posts/looking-for-team", tags=["team_posts"])
+def list_looking_for_team():
+    return TeamPosts.get_looking_for_team_posts()
+
+@app.post("/team-posts", tags=["team_posts"])
+def create_team_post(body: TeamPostCreate):
+    post_id = TeamPosts.create_post(
+        body.student_id,
+        body.unit_code,
+        body.looking_for_team,
+        body.open_to_messages,
+        body.note
+    )
+    if post_id == 0:
+        raise HTTPException(400, "Failed to create post")
+    return {"id": post_id}
+
+@app.delete("/team-posts/{post_id}", tags=["team_posts"])
+def delete_team_post(post_id: int):
+    if not TeamPosts.delete_post(post_id):
+        raise HTTPException(404, "Post not found")
+    return {"ok": True}
+
+class AuthParams(BaseModel):
+    username: str
+    password: str
+
+@app.post("/auth", tags=["auth"])
+def auth(body: AuthParams):
     try:
-        msg_id = Messages.send(
-            sender_id=body.sender_id,
-            recipient_id=recipient["student_id"],
-            body=body.body
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return {"ok": True, "message_id": msg_id}
+        is_valid = verify_credentials(body.username, body.password)
+        if is_valid:
+            from database.connection import execute_query
+            rows = execute_query(
+                "SELECT id, name, fax_n, pager_n, avatar_url FROM Student WHERE name = ? LIMIT 1",
+                (body.username,)
+            )
+            if rows:
+                student = rows[0]
+                return {
+                    "success": True,
+                    "message": "Login successful",
+                    "student": {
+                        "id": student["id"],
+                        "name": student["name"],
+                        "fax_n": student["fax_n"],
+                        "pager_n": student["pager_n"],
+                        "avatar_url": student["avatar_url"]
+                    }
+                }
 
-@app.get("/users/{student_id}/inbox", tags=["messages"])
-def get_inbox(student_id: int):
-    return Messages.get_inbox(student_id)
-
-@app.get("/users/{student_id}/outbox", tags=["messages"])
-def get_outbox(student_id: int):
-    return Messages.get_outbox(student_id)
-
-@app.get("/users/{a_id}/conversation/{b_id}", tags=["messages"])
-def get_conversation(a_id: int, b_id: int, limit: int = 50):
-    return Messages.get_conversation(a_id, b_id, limit)
-
-@app.post("/messages/{message_id}/read", tags=["messages"])
-def mark_message_read(message_id: int):
-    if not Messages.mark_read(message_id):
-        raise HTTPException(status_code=404, detail="Message not found")
-    return {"ok": True}
-
-@app.delete("/messages/{message_id}", tags=["messages"])
-def delete_message(message_id: int, acting_user_id: int):
-    if not Messages.delete(message_id, acting_user_id):
-        raise HTTPException(status_code=404, detail="Message not found or no permission")
-    return {"ok": True}
-
-@app.get("/users/{student_id}/unread-count", tags=["messages"])
-def unread_count(student_id: int):
-    return {"unread": Messages.unread_count(student_id)}
-
+        return {
+            "success": False,
+            "message": "Invalid username or password"
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Authentication error: {e}")
 
 #database test
 @app.get("/test-db")
@@ -418,3 +384,60 @@ def test_db():
     except Exception as e:
         raise HTTPException(500, f"DB Error: {e}")
 
+# --- Group membership: reflect real DB state ---
+class GroupMemberCreate(BaseModel):
+    student_id: int
+
+@app.get("/students/{student_id}/groups", tags=["groups"])
+def groups_for_student(student_id: int):
+    rows = execute_query(
+        """
+        SELECT g.id, g.unit_code, g.num, g.name
+        FROM group_member gm
+        JOIN Groups g ON gm.group_id = g.id
+        WHERE gm.student_id = ?
+        ORDER BY g.unit_code, g.num, g.id
+        """,
+        (student_id,),
+    )
+    return [dict(r) for r in rows]
+
+@app.get("/groups/{group_id}/members", tags=["groups"])
+def list_group_members(group_id: int):
+    # ensure group exists
+    gexists = execute_query("SELECT 1 FROM Groups WHERE id = ? LIMIT 1", (group_id,))
+    if not gexists:
+        raise HTTPException(404, "Group not found")
+    rows = execute_query(
+        """
+        SELECT s.id, s.name, s.avatar_url
+        FROM group_member gm
+        JOIN Student s ON s.id = gm.student_id
+        WHERE gm.group_id = ?
+        ORDER BY s.name
+        """,
+        (group_id,),
+    )
+    return [dict(r) for r in rows]
+
+@app.post("/groups/{group_id}/members", tags=["groups"])
+def add_group_member(group_id: int, body: GroupMemberCreate):
+    # ensure group exists
+    gexists = execute_query("SELECT 1 FROM Groups WHERE id = ? LIMIT 1", (group_id,))
+    if not gexists:
+        raise HTTPException(404, "Group not found")
+    # check already a member
+    exists = execute_query(
+        "SELECT 1 FROM group_member WHERE group_id = ? AND student_id = ? LIMIT 1",
+        (group_id, body.student_id),
+    )
+    if exists:
+        return {"ok": True, "already_member": True}
+    try:
+        execute_insert(
+            "INSERT INTO group_member (group_id, student_id) VALUES (?, ?)",
+            (group_id, body.student_id),
+        )
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(400, f"Failed to add member: {e}")

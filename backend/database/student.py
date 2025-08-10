@@ -5,28 +5,28 @@ from .connection import execute_query, execute_update, execute_insert
 class Student:
     @staticmethod
     def create(name: str, password: str, fax_n: str, pager_n: str, avatar_url: str) -> int:
-        hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+        hashedpw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
         query = """
             INSERT INTO Student (name, password, fax_n, pager_n, avatar_url)
             VALUES (?, ?, ?, ?, ?)
         """
-        return execute_insert(query, (name, hashed_pw, fax_n, pager_n, avatar_url))
+        return execute_insert(query, (name, hashedpw, fax_n, pager_n, avatar_url))
 
     @staticmethod
     def get_by_id(student_id: int) -> Dict[str, Any] | None:
-        query = "SELECT * FROM Student WHERE student_id = ?"
+        query = "SELECT * FROM Student WHERE id = ?"
         results = execute_query(query, (student_id,))
         return dict(results[0]) if results else None
 
     @staticmethod
     def get_password(student_id: int) -> bytes | None:
-        query = "SELECT password FROM Student WHERE student_id = ?"
+        query = "SELECT password FROM Student WHERE id = ?"
         results = execute_query(query, (student_id,))
         return results[0][0] if results else None
 
     @staticmethod
     def verify_password(student_id: int, plain_password: str) -> bool:
-        query = "SELECT password FROM Student WHERE student_id = ?"
+        query = "SELECT password FROM Student WHERE id = ?"
         results = execute_query(query, (student_id,))
         if not results:
             return False
@@ -42,12 +42,12 @@ class Student:
     @staticmethod
     def update(student_id: int, name: str, password: str, fax_n: str, pager_n: str, avatar_url: str) -> bool:
         hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-        query = "UPDATE Student SET name = ?, password = ?, fax_n = ?, pager_n = ?, avatar_url = ? WHERE student_id = ?"
-        return execute_update(query, (name, hashedpw, fax_n, pager_n, avatar_url, student_id)) > 0
+        query = "UPDATE Student SET name = ?, password = ?, fax_n = ?, pager_n = ?, avatar_url = ? WHERE id = ?"
+        return execute_update(query, (name, hashed_pw, fax_n, pager_n, avatar_url, student_id)) > 0
 
     @staticmethod
     def delete(student_id: int) -> bool:
-        query = "DELETE FROM Student WHERE student_id = ?"
+        query = "DELETE FROM Student WHERE id = ?"
         return execute_update(query, (student_id,)) > 0
 
     @staticmethod
@@ -55,23 +55,3 @@ class Student:
         query = "SELECT * FROM Student WHERE name LIKE ? ORDER BY name"
         results = execute_query(query, (f"%{name_pattern}%",))
         return [dict(row) for row in results]
-    
-    @staticmethod
-    def create_with_id(student_id: int, name: str, password: str, fax_n: str, pager_n: str, avatar_url: str) -> int:
-        hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-        query = """
-            INSERT INTO Student (student_id, name, password, fax_n, pager_n, avatar_url)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """
-        return execute_insert(query, (student_id, name, hashed, fax_n, pager_n, avatar_url))
-
-    @staticmethod
-    def exists_by_id(student_id: int) -> bool:
-        q = "SELECT 1 FROM Student WHERE student_id = ? LIMIT 1"
-        return len(execute_query(q, (student_id,))) > 0
-
-    @staticmethod
-    def get_by_pager(pager_n: str):
-        rows = execute_query("SELECT * FROM Student WHERE pager_n = ? LIMIT 1", (pager_n,))
-        return dict(rows[0]) if rows else None
-    

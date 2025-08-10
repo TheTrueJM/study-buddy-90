@@ -5,7 +5,7 @@ def create_tables():
     with get_db_connection() as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS Student (
-                student_id INTEGER PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 password BLOB NOT NULL,
                 fax_n TEXT,
@@ -50,7 +50,7 @@ def create_tables():
                 group_id INTEGER NOT NULL,
                 student_id INTEGER NOT NULL,
                 PRIMARY KEY (group_id, student_id),
-                FOREIGN KEY (student_id) REFERENCES Student (student_id)
+                FOREIGN KEY (student_id) REFERENCES Student (id)
             )
         """)
 
@@ -63,7 +63,7 @@ def create_tables():
                 availability TEXT,
                 PRIMARY KEY (unit_code, student_id),
                 FOREIGN KEY (unit_code) REFERENCES Units (code),
-                FOREIGN KEY (student_id) REFERENCES Student (student_id)
+                FOREIGN KEY (student_id) REFERENCES Student (id)
             )
         """)
 
@@ -72,25 +72,23 @@ def create_tables():
                 group_id INTEGER NOT NULL,
                 student_id INTEGER NOT NULL,
                 PRIMARY KEY (group_id, student_id),
-                FOREIGN KEY (student_id) REFERENCES Student (student_id)
+                FOREIGN KEY (student_id) REFERENCES Student (id)
             )
         """)
 
         conn.execute("""
-            CREATE TABLE IF NOT EXISTS messages (
+            CREATE TABLE IF NOT EXISTS team_posts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sender_id INTEGER NOT NULL,
-                recipient_id INTEGER NOT NULL,
-                body TEXT NOT NULL,
-                created_at INTEGER NOT NULL,          -- unix epoch seconds
-                read INTEGER NOT NULL DEFAULT 0,      -- 0/1
-                CHECK (length(body) <= 160),
-                FOREIGN KEY (sender_id) REFERENCES Student (student_id),
-                FOREIGN KEY (recipient_id) REFERENCES Student (student_id)
+                student_id INTEGER NOT NULL,
+                unit_code TEXT NOT NULL,
+                looking_for_team BOOLEAN DEFAULT TRUE,
+                open_to_messages BOOLEAN DEFAULT TRUE,
+                note TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (student_id) REFERENCES Student (id),
+                FOREIGN KEY (unit_code) REFERENCES Units (code)
             )
         """)
-
-
 
 def init_database():
     create_tables()

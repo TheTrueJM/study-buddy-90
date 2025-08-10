@@ -1,26 +1,19 @@
-from typing import Optional
-import bcrypt
-from .connection import execute_query
+from .students import Students
 
-def verify_credentials(student_id: int, password: str) -> bool:
+def verify_credentials(username: str, password: str) -> bool:
     """
-    Returns True if there's a Student with this name whose bcrypt hash
-    matches `password`. Otherwise False.
+    Verify user credentials by username and password.
+    This is a wrapper around Students.verify_credentials to match the main.py import.
     """
-    rows = execute_query(
-        "SELECT student_id, password FROM Student WHERE student_id = ? LIMIT 1",
-        (student_id,)
-    )
-    if not rows:
-        return False
-
-    stored_hash = rows[0]["password"]  
-    if isinstance(stored_hash, str):
-        stored_hash = stored_hash.encode()
-
-    try:
-        return bcrypt.checkpw(password.encode(), stored_hash)
-    except Exception:
+    # First find the student by name
+    students = Students.search_by_name(username)
+    if not students:
         return False
     
+    # Find exact match
+    student = next((s for s in students if s['name'] == username), None)
+    if not student:
+        return False
     
+    # Verify password using student ID
+    return Students.verify_credentials(student['id'], password)
