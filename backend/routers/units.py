@@ -59,10 +59,9 @@ def create_unit(unit: UnitCreate):
 
 @router.put("/{code}/")
 def update_unit(code: str, unit_details: UnitUpdate):
-    unit = Units.update(code, unit_details.name, unit_details.description or "")
-    if not unit:
+    if not Units.update(code, unit_details.name, unit_details.description or ""):
         raise HTTPException(404, "Unit not found")
-    return {"unit": unit}
+    return {"unit": Units.get_by_code(code)}
 
 @router.delete("/{code}/")
 def delete_unit(code: str):
@@ -101,15 +100,15 @@ def create_assessment(code: str, assessment: AssessmentCreate):
         code, assessment.num, assessment.grade, assessment.due_week, assessment.group_size, assessment.group_formation_week
     ):
         raise HTTPException(400, "Assessment already exists")
-    return {"assessment": assessment}, 201
+    return {"assessment": Assessments.get_by_key(code, assessment.num)}, 201
 
 @router.put("/{code}/assessments/{num}/")
-def update_assessment(unit_code: str, num: int, assessment: AssessmentUpdate):
+def update_assessment(code: str, num: int, assessment: AssessmentUpdate):
     if not Assessments.update(
-        unit_code, num, assessment.grade, assessment.due_week, assessment.group_size, assessment.group_formation_week
+        code, num, assessment.grade, assessment.due_week, assessment.group_size, assessment.group_formation_week
     ):
         raise HTTPException(404, "Assessment not found.")
-    return {"assessment": assessment}
+    return {"assessment": Assessments.get_by_key(code, num)}
 
 @router.delete("/{code}/assessments/{num}/")
 def delete_assessment(unit_code: str, num: int):
@@ -119,12 +118,12 @@ def delete_assessment(unit_code: str, num: int):
 
 
 @router.get("/{code}/assessments/{num}/groups/")
-def list_assessment_groups():
-    return {"Groups": Groups.get_all()}
+def list_assessment_groups(unit_code: str, num: int):
+    return {"Groups": Groups.get_by_assessment(unit_code, num)}
 
 @router.post("/{code}/assessments/{num}/groups/")
-def create_assessment_group(code: int, num: int, group: GroupCreate):
+def create_assessment_group(code: str, num: int, group: GroupCreate):
     new_group = Groups.create(code, num, group.name)
-    if not new_group:
+    if new_group <= 0:
         raise HTTPException(400, "Group already exists")
-    return {"Group": new_group}, 201
+    return {"Group": Groups.get_by_id(new_group)}, 201

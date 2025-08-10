@@ -19,7 +19,7 @@ class Enrolments:
 
     @staticmethod
     def get_student_enrolments(student_id: int) -> List[Dict[str, Any]]:
-        query = "SELECT * FROM Enrolments WHERE e.student_id = ? ORDER BY code"
+        query = "SELECT * FROM Enrolments WHERE student_id = ? ORDER BY unit_code"
         results = execute_query(query, (student_id,))
         return [dict(row) for row in results]
 
@@ -38,9 +38,9 @@ class Enrolments:
     @staticmethod
     def get_unit_students(unit_code: str) -> List[Dict[str, Any]]:
         query = """
-            SELECT e.code, s.id, s.name
+            SELECT e.unit_code, s.id, s.name
             FROM Enrolments e
-            JOIN Student s ON e.student_id = s.id
+            JOIN Students s ON e.student_id = s.id
             WHERE e.unit_code = ?
             ORDER BY s.name
         """

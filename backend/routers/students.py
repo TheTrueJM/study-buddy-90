@@ -64,7 +64,7 @@ def update_student(id: int, student: StudentUpdate):
         avatar_url=student.avatar_url or "",
     ):
         raise HTTPException(404, "Student ID not found")
-    return {"student": student}
+    return {"student": Students.get_by_id(id)}
 
 @router.put("/{id}/update-password/")
 def update_student_password(id: int, student: StudentUpdatePassword):

@@ -3,22 +3,21 @@ from .connection import execute_query, execute_update, execute_insert
 
 class Groups:
     @staticmethod
-    def create(unit_code: str, num: int, name: str) -> bool:
+    def create(unit_code: str, num: int, name: str) -> int:
         query = """
             INSERT INTO Groups (unit_code, num, name)
             VALUES (?, ?, ?)
         """
         try:
-            execute_insert(query, (unit_code, num, name))
-            return True
+            return execute_insert(query, (unit_code, num, name))
         except:
-            return False
+            return -1
     
 
     @staticmethod
     def get_by_id(id: int) -> Dict[str, Any] | None:
         query = "SELECT * FROM Groups WHERE id = ?"
-        results = execute_query(query, (id))
+        results = execute_query(query, (id,))
         return dict(results[0]) if results else None
     
     @staticmethod
@@ -42,16 +41,13 @@ class Groups:
 
     @staticmethod
     def update(id: int, name: str) -> bool:
-        query = """
-            UPDATE Groups SET name = ?
-            WHERE id = ?
-        """
-        return execute_update(query, (id, name)) > 0
+        query = "UPDATE Groups SET name = ? WHERE id = ?"
+        return execute_update(query, (name, id)) > 0
 
     @staticmethod
-    def delete(unit_code: str, num: int, id: int) -> bool:
-        query = "DELETE FROM Groups WHERE unit_code = ? AND num = ? AND id = ?"
-        return execute_update(query, (unit_code, num, id)) > 0
+    def delete(id: int) -> bool:
+        query = "DELETE FROM Groups WHERE id = ?"
+        return execute_update(query, (id,)) > 0
     
     @staticmethod
     def delete_by_assessment(unit_code: str, num: int) -> int:
@@ -63,7 +59,7 @@ class Groups:
     def get_members(id: int) -> List[Dict[str, Any]]:
         query = """
             SELECT s.id, s.name
-            FROM Students
+            FROM Students s
             JOIN GroupMembers gm ON s.id = gm.student_id
             WHERE gm.group_id = ?
             ORDER BY s.name
@@ -80,7 +76,7 @@ class Groups:
     def get_requests(id: int) -> List[Dict[str, Any]]:
         query = """
             SELECT s.id, s.name
-            FROM Students
+            FROM Students s
             JOIN GroupRequests gr ON s.id = gr.student_id
             WHERE gr.group_id = ?
             ORDER BY s.name

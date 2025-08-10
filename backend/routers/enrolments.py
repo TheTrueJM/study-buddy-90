@@ -7,7 +7,6 @@ from database.enrolments import Enrolments
 
 class EnrolCreate(BaseModel):
     unit_code: str
-    student_id: int
     grade: float = 0.0
     availability: str = ""
     complete: bool = False
@@ -22,24 +21,24 @@ class EnrolUpdate(BaseModel):
 router = APIRouter()
 
 
-@router.get("/")
-def list_enrolments():
-    return {"enrolments": Enrolments.get_all_enrolments()}
+@router.get("/{student_id}/")
+def list_student_enrolments(student_id: int):
+    return {"enrolments": Enrolments.get_student_enrolments(student_id)}
 
-@router.post("/")
-def enroll_student(enrolment: EnrolCreate):
-    if not Enrolments.enroll_student(enrolment.unit_code, enrolment.student_id, enrolment.grade, enrolment.availability, enrolment.complete):
+@router.post("/{student_id}/")
+def enroll_student(student_id: int, enrolment: EnrolCreate):
+    if not Enrolments.enroll_student(enrolment.unit_code, student_id, enrolment.grade, enrolment.availability, enrolment.complete):
         raise HTTPException(400, "Enrolment already exists")
-    return {"enrolment": enrolment}, 201
+    return {"enrolment": Enrolments.get_enrolment(enrolment.unit_code, student_id)}, 201
 
-@router.put("/{unit_code}/{student_id}/")
-def update_enrolment(unit_code: str, student_id: int, enrolment: EnrolUpdate):
+@router.put("/{student_id}/{unit_code}/")
+def update_enrolment(student_id: int, unit_code: str, enrolment: EnrolUpdate):
     if not Enrolments.update(unit_code, student_id, enrolment.grade, enrolment.availability, enrolment.complete):
         raise HTTPException(404, "Enrolment not found")
-    return {"enrolment": enrolment}
+    return {"enrolment": Enrolments.get_enrolment(unit_code, student_id)}
 
-@router.delete("/{unit_code}/{student_id}/")
-def unenroll_student(unit_code: str, student_id: int):
+@router.delete("/{student_id}/{unit_code}/")
+def unenroll_student(student_id: int, unit_code: str):
     if not Enrolments.delete(unit_code, student_id):
         raise HTTPException(404, "Enrolment not found")
     return None, 204

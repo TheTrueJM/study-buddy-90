@@ -31,7 +31,7 @@ def get_group(id: int):
 def update_group(id: int, group: GroupUpdate):
     if not Groups.update(id, group.name):
         raise HTTPException(404, "Group not found")
-    return {"group": group}
+    return {"group": Groups.get_by_id(id)}
 
 @router.delete("/{id}/")
 def delete_group(id: int):
@@ -50,8 +50,8 @@ def list_member_requests(id: int):
 @router.post("/{id}/requests/")
 def add_member_request(id: int, request: StudentAction):
     if not GroupRequests.create_request(id, request.student_id):
-        raise HTTPException(400, "Group request already exists")
-    return {"request": request}, 201
+        raise HTTPException(400, "Failed to create request")
+    return {"request": GroupRequests.get_by_key(id, request.student_id)}, 201
 
 @router.delete("/{id}/requests:deny/")
 def delete_member_request(id: int, request: StudentAction):
@@ -64,7 +64,7 @@ def accept_request_as_member(id: int, member_request: StudentAction):
     if not GroupRequests.delete_request(id, member_request.student_id):
         raise HTTPException(404, "Group request not found")
     if not GroupMembers.add_member(id, member_request.student_id):
-        raise HTTPException(400, "Group member already exists")
+        raise HTTPException(400, "Failed to create request")
     return {"member": member_request}, 201
 
 
@@ -84,10 +84,7 @@ def remove_member(id: int, member: StudentAction):
 
 @router.get("/{id}/members/count")
 def get_size_count(id: int):
-    count = Groups.get_current_size(id)
-    if not count:
-        raise HTTPException(404, "Group not found")
-    return {"count": count}
+    return {"count": Groups.get_current_size(id)}
 
 
 @router.get("/{id}/messages/")

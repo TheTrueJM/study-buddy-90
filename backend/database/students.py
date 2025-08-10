@@ -12,7 +12,11 @@ class Students:
             INSERT INTO Students (id, name, password, fax_num, pager_num, avatar_url)
             VALUES (?, ?, ?, ?, ?, ?)
         """
-        return execute_insert(query, (id, name, hashedpw, fax_num, pager_num, avatar_url))
+        try:
+            execute_insert(query, (id, name, hashedpw, fax_num, pager_num, avatar_url))
+            return True
+        except:
+            return False
 
 
     @staticmethod
@@ -29,9 +33,9 @@ class Students:
     
 
     @staticmethod
-    def update(id: int, name: str, fax_n: str, pager_n: str, avatar_url: str) -> bool:
+    def update(id: int, name: str, fax_num: str, pager_num: str, avatar_url: str) -> bool:
         query = "UPDATE Students SET name = ?, fax_num = ?, pager_num = ?, avatar_url = ? WHERE id = ?"
-        return execute_update(query, (name, fax_n, pager_n, avatar_url, id)) > 0
+        return execute_update(query, (name, fax_num, pager_num, avatar_url, id)) > 0
 
     @staticmethod
     def delete(id: int) -> bool:
