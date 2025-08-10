@@ -38,13 +38,13 @@
 
   <!-- Quick Post -->
   <Card title="Find a Team">
-    <div class="field-row">
+    <div class="ield-center">
       <label for="unit">Unit</label>
       <select id="unit" bind:value={search.unit}>
         {#each units as u}<option value={u}>{u}</option>{/each}
       </select>
     </div>
-    <div class="field-row">
+    <div class="ield-center">
       <label
         ><input type="checkbox" bind:checked={search.looking} /> Looking for team</label
       >
@@ -52,7 +52,7 @@
         ><input type="checkbox" bind:checked={search.openMsg} /> Open to messages</label
       >
     </div>
-    <div class="field-row">
+    <div class="field-center">
       <label for="note">Note</label>
       <input
         id="note"
@@ -68,7 +68,7 @@
   </Card>
 
   <!-- Groups -->
-  <Card>
+  <Card title="s">
     <ul style="padding-left:1rem;">
       {#each groups as g}
         <li class="field-row" style="justify-content:space-between;">

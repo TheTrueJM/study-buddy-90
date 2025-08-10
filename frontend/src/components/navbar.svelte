@@ -21,12 +21,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  .auth,
-  .auth button,
-  .auth input,
-  .auth select {
-    font-family: "ChicagoFLF", "Monaco", monospace;
-  }
-</style>

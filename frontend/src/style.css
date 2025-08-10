@@ -711,7 +711,7 @@ button, input, select, textarea, label,
 /* B. Button size */
 .btn-lg { font-size: 16px; padding: 4px 12px; }
 .btn-sm { font-size: 12px; padding: 2px 8px; }
-.btn-xs { font-size: 11px; padding: 1px 6px; } /* 아주 작은 토글용 */
+.btn-xs { font-size: 11px; padding: 1px 6px; }
 
 /* C. Form control */
 .field-lg input,
@@ -728,15 +728,16 @@ button, input, select, textarea, label,
 .ui-zoom-200 { transform: scale(2);    transform-origin: center; display:inline-block; }
 /* ======================================================================== */
 
+/* ── Tall input ≈ visible 100px (scale=2) ───────────────── */
+.field-100 input,
+.field-100 select,
+.field-100 textarea {
+  font-size: 16px;
+  height: 40px;     
+  padding: 4px 8px; 
 
-/* ── Slim input preset: 높이만 낮게 ───────────────────────── */
-.field-slim input,
-.field-slim select,
-.field-slim textarea {
-  font-size: 16px;   /* 글자 크기는 유지 */
-  height: 22px;      /* ← 여기 숫자를 조절 (보이는 높이는 scale 2로 44px) */
-  padding: 2px 8px;  /* 세로 패딩만 살짝 줄임 */
 }
-/* 필요하면 더 컴팩트하게
-.field-slim input { height: 20px; padding: 1px 8px; }  // 보이는 40px
-*/
+
+/* input full */
+.input-full input { width:100%; box-sizing:border-box; }
+
